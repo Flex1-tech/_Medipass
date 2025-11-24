@@ -1,11 +1,13 @@
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Scanner;
 
 public abstract class User {
+    private static final String url = "jdbc:sqlite:data/medipass.db";
     protected int idUser;
     private static int compteur = 0;
     protected String nom;
@@ -14,10 +16,40 @@ public abstract class User {
     protected String telephone;
     protected String adresse;
     protected String motDePasse;
-    protected String droitsAcces;
 
-    public abstract boolean seConnecter();
-    public abstract void seDeconnecter();
+    public boolean seConnecter() {
+        @SuppressWarnings("resource")
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Entrez votre numéro de téléphone : ");
+        String telephone = scanner.nextLine();
+
+        System.out.print("Entrez votre mot de passe : ");
+        String motDePasse = scanner.nextLine();
+
+        String sql = "SELECT motDePasse FROM users WHERE telephone = ?";
+
+        try (Connection conn = DriverManager.getConnection(url);
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, telephone);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String hash = rs.getString("motDePasse");
+                    return BCrypt.checkpw(motDePasse, hash);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public User() {
+    this.idUser = ++compteur;  // Attribuer un ID unique à chaque utilisateur
+    }
     
     public int get_IdUser() {
         return idUser;
@@ -55,18 +87,8 @@ public abstract class User {
     protected void set_Telephone(String telephone) {
         this.telephone = telephone;
     }
-    public String get_DroitsAcces() {
-        return droitsAcces;
-    }
-    protected void set_DroitsAcces(String droitsAcces) {
-        this.droitsAcces = droitsAcces;
-    }
     protected void set_MotDePasse(String motDePasse) {
         this.motDePasse = BCrypt.hashpw(motDePasse, BCrypt.gensalt());
     }
-    protected  boolean verif_MotDePasse(String motDePasse) {
-        return BCrypt.checkpw(motDePasse, this.motDePasse);
-    }
     
-
 } 
