@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public abstract class User {
-    private static final String url = "jdbc:sqlite:data/medipass.db";
+    protected static final String url = "jdbc:sqlite:data/medipass.db";
     protected int idUser;
     private static int compteur = 0;
     protected String nom;
