@@ -9,10 +9,13 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class Administrateur extends User{
 	
-	public Administrateur(String n,String p) {
+	public Administrateur(String nom, String prenom, String telephone, String motDePasse, String adresse) {
 		super();
-		this.nom=n;
-		this.prenom=p;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.set_MotDePasse(motDePasse);
+        this.adresse = adresse;
 	}
 	
 	public void creerUtilisateur() {
@@ -120,7 +123,6 @@ public class Administrateur extends User{
 		String table=null;
 		String updateSql=null;
 		boolean estProSante=false;
-		String role=null;
 		
 			System.out.print("1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
@@ -131,18 +133,15 @@ public class Administrateur extends User{
 			if(choix==1) {
 				table="Administrateurs";
 				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=? WHERE nom=? AND prenom=?";
-				role="administrateur";
 			}
 			else if(choix==2) {
 				table="Patients";
 				updateSql="UPDATE Patients SET nom=?,prenom=?,adresse=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
-				role="patient";
 			}
 			else if(choix==3) {
 				table="ProfessionnelSante";
 				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
 				estProSante=true;
-				role="professionnel de santé";
 			}
 			else {
 				System.out.println("Choix invalide.Veuillez réesayez.");
@@ -239,9 +238,6 @@ public class Administrateur extends User{
 		System.out.print("Entrez son/ses prénoms(s): ");
 		String prenomUser=scanner.nextLine();
 		
-		System.out.print("Entrez son mot de passe:");
-		String passwordUser=scanner.nextLine();
-		String hashedPassword=BCrypt.hashpw(passwordUser,BCrypt.gensalt());
 		
 		System.out.print("1 pour suppression de compte administrateur\n"
 				+ "2 pour suppression de compte patient\n"
