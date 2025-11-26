@@ -51,7 +51,7 @@ public class Administrateur extends User{
 		
 		if(choix==1) {
 			table="Administrateurs";
-			insertSql="INSERT INTO Administrateurs (nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
+			insertSql="INSERT INTO Administrateurs(nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
 			role="administrateur";
 		}
 		else if(choix==2) {
@@ -132,7 +132,7 @@ public class Administrateur extends User{
 			
 			if(choix==1) {
 				table="Administrateurs";
-				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=? WHERE nom=? AND prenom=?";
+				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
 			}
 			else if(choix==2) {
 				table="Patients";
@@ -140,7 +140,7 @@ public class Administrateur extends User{
 			}
 			else if(choix==3) {
 				table="ProfessionnelSante";
-				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
+				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=?,categorie=? WHERE nom=? AND prenom=?";
 				estProSante=true;
 			}
 			else {
