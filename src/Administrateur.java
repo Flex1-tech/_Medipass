@@ -9,10 +9,13 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class Administrateur extends User{
 	
-	public Administrateur(String n,String p) {
+	public Administrateur(String nom, String prenom, String telephone, String motDePasse, String adresse) {
 		super();
-		this.nom=n;
-		this.prenom=p;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.set_MotDePasse(motDePasse);
+        this.adresse = adresse;
 	}
 	
 	public void creerUtilisateur() {
@@ -237,9 +240,6 @@ public class Administrateur extends User{
 		System.out.print("Entrez son/ses prénoms(s): ");
 		String prenomUser=scanner.nextLine();
 		
-		System.out.print("Entrez son mot de passe:");
-		String passwordUser=scanner.nextLine();
-		String hashedPassword=BCrypt.hashpw(passwordUser,BCrypt.gensalt());
 		
 		System.out.println("1 pour suppression de compte administrateur\n "
 				+ "2 pour suppression de compte patient\n "
