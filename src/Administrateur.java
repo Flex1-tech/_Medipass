@@ -33,7 +33,7 @@ public class Administrateur extends User{
 		System.out.print("Entrez son adresse: ");
 		String adressUser=scanner.nextLine();
 		
-		System.out.print("Entrez son mot de passe:");
+		System.out.print("Entrez son mot de passe: ");
 		String passwordUser=scanner.nextLine();
 		String hashedPassword=BCrypt.hashpw(passwordUser,BCrypt.gensalt());
 		
@@ -100,7 +100,7 @@ public class Administrateur extends User{
 						
 						int rows=stmt.executeUpdate();
 						if(rows>0) {
-							System.out.println(nomUser+"a été créé avec succès en tant que "+role);
+							System.out.println(nomUser+" a été créé avec succès en tant que "+role);
 						}
 			 }
 			
