@@ -80,10 +80,7 @@ public class Disponibilite {
         }
         
         // on verifie si les horaires se chevauchent
-        return !(this.heureFin.isBefore(autre.heureDebut) || 
-                 this.heureFin.equals(autre.heureDebut) ||
-                 this.heureDebut.isAfter(autre.heureFin) ||
-                 this.heureDebut.equals(autre.heureFin));
+    return ((this.jour == autre.jour) && this.heureDebut.isBefore(autre.heureFin) && autre.heureDebut.isBefore(this.heureFin));
     }
     
     // calcule la duree en minutes

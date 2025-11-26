@@ -122,7 +122,6 @@ public class Administrateur extends User{
 		String table=null;
 		String updateSql=null;
 		boolean estProSante=false;
-		String role=null;
 		
 			System.out.println("1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
@@ -132,18 +131,15 @@ public class Administrateur extends User{
 			if(choix==1) {
 				table="Administrateurs";
 				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=? WHERE nom=? AND prenom=?";
-				role="administrateur";
 			}
 			else if(choix==2) {
 				table="Patients";
 				updateSql="UPDATE Patients SET nom=?,prenom=?,adresse=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
-				role="patient";
 			}
 			else if(choix==3) {
 				table="ProfessionnelSante";
 				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
 				estProSante=true;
-				role="professionnel de santé";
 			}
 			else {
 				System.out.println("Choix invalide.Veuillez réesayez.");

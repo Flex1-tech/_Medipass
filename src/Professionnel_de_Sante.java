@@ -27,9 +27,6 @@ public class Professionnel_de_Sante extends User {
     public List<Disponibilite> get_Disponibilites() {
         return disponibilites;
     }
-    public void ajouter_Disponibilite(Disponibilite disponibilite) {
-        this.disponibilites.add(disponibilite);
-    }
     public void supprimer_Disponibilite(Disponibilite disponibilite) {
         this.disponibilites.remove(disponibilite);
     }
@@ -55,4 +52,13 @@ public class Professionnel_de_Sante extends User {
 
         return sb.toString();
     }
+    public void ajouter_Disponibilite(Disponibilite disponibilite) {
+    for (Disponibilite d : disponibilites) {
+        if (d.chevauche(disponibilite)) {
+            throw new IllegalArgumentException("Cette disponibilité chevauche une disponibilité existante !");
+        }
+    }
+    this.disponibilites.add(disponibilite);
+    }
+
 }
