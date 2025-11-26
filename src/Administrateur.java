@@ -39,9 +39,10 @@ public class Administrateur extends User{
 		String role=null;
 		boolean estProSante=false;
 		
-		System.out.println("1 pour création de compte administrateur\n "
-					+ "2 pour création de compte patient\n "
-					+ "3 pour création de compte de professionnel de santé\n");
+		System.out.print("1 pour création de compte administrateur\n"
+		        + "2 pour création de compte patient\n"
+		        + "3 pour création de compte de professionnel de santé\n");
+		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
 		scanner.nextLine();
 		
@@ -121,9 +122,10 @@ public class Administrateur extends User{
 		boolean estProSante=false;
 		String role=null;
 		
-			System.out.println("1 pour modifier compte administrateur\n"
+			System.out.print("1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
 					+ "3 pour modifier compte professionnel de santé\n");
+			System.out.print("Choix: ");
 			int choix=scanner.nextInt();
 			
 			if(choix==1) {
@@ -241,9 +243,10 @@ public class Administrateur extends User{
 		String passwordUser=scanner.nextLine();
 		String hashedPassword=BCrypt.hashpw(passwordUser,BCrypt.gensalt());
 		
-		System.out.println("1 pour suppression de compte administrateur\n "
-				+ "2 pour suppression de compte patient\n "
+		System.out.print("1 pour suppression de compte administrateur\n"
+				+ "2 pour suppression de compte patient\n"
 				+ "3 pour suppression de compte de professionnel de santé\n");
+		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
 		
 		String table=null;
