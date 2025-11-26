@@ -1,72 +1,47 @@
-
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.time.format.DateTimeFormatter;
 
 public class Patient extends User {
-    private String date_Derniere_Consultation;
 
-    public boolean seConnecter() { return this.motDePasse != null && !this.motDePasse.isBlank(); }
-    public void seDeconnecter() {}
-
-    public String get_Date_Derniere_Consultation() { return date_Derniere_Consultation; }
-    protected void set_Date_Derniere_Consultation(String date) { this.date_Derniere_Consultation = date; }
-}
-
-class Consultation {
-    private final String id;
-    private final LocalDate date;
-    private final String contenu;
-
-    Consultation(String id, LocalDate date, String contenu) {
-        this.id = id == null || id.isBlank() ? UUID.randomUUID().toString() : id;
-        this.date = date;
-        this.contenu = contenu;
+    private LocalDate date_Dernière_Consultation;
+    public Patient(String nom, String prenom, String telephone, String motDePasse, String adresse) {
+        super(); // Appelle le constructeur de la classe parente (User)
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.set_MotDePasse(motDePasse);
+        this.adresse = adresse;
+    }
+    
+    @SuppressWarnings("unused")
+    private void Programmer_Consultation() {
+        // Implémentation de la méthode Programmer_Consultation
     }
 
-    String getId() { return id; }
-    LocalDate getDate() { return date; }
-    String getContenu() { return contenu; }
-}
-
-class Antecedent {
-    private final String id;
-    private final LocalDate date;
-    private final String type;
-    private final String description;
-
-    Antecedent(String id, LocalDate date, String type, String description) {
-        this.id = id == null || id.isBlank() ? UUID.randomUUID().toString() : id;
-        this.date = date;
-        this.type = type;
-        this.description = description;
+    public LocalDate get_Date_Dernière_Consultation() {
+        return date_Dernière_Consultation;
     }
+    @SuppressWarnings("unused")
+    private void set_Date_Dernière_Consultation(String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    String getId() { return id; }
-    LocalDate getDate() { return date; }
-    String getType() { return type; }
-    String getDescription() { return description; }
-}
+        this.date_Dernière_Consultation = LocalDate.parse(date, formatter);
 
-class DossierMedical {
-    private final int patientId;
-    private final List<Antecedent> antecedents = new ArrayList<>();
-    private final List<Consultation> consultations = new ArrayList<>();
-    private String observations = "";
-    private LocalDate derniereConsultation;
+        
+    }
+    public String afficher_Date_Dernière_Consultation() {
+        if (date_Dernière_Consultation == null) {
+            return "Aucune consultation enregistrée.";
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return date_Dernière_Consultation.format(formatter);
+    }
+    public String toString() {
+        StringBuilder sb = new StringBuilder(128); // capacité initiale
+        sb.append("Nom: ").append(nom).append(", \n");
+        sb.append("Prénom: ").append(prenom).append(", \n");
+        sb.append("Date de la dernière consultation: ").append(afficher_Date_Dernière_Consultation()).append(", \n");
 
-    DossierMedical(int patientId) { this.patientId = patientId; }
-
-    int getPatientId() { return patientId; }
-    List<Antecedent> getAntecedents() { return Collections.unmodifiableList(antecedents); }
-    List<Consultation> getConsultations() { return Collections.unmodifiableList(consultations); }
-    int getNombreConsultations() { return consultations.size(); }
-    String getObservations() { return observations; }
-    void setObservations(String observations) { this.observations = observations == null ? "" : observations; }
-    LocalDate getDerniereConsultation() { return derniereConsultation; }
-
-    Antecedent addAntecedent(Antecedent a) { antecedents.add(a); return a; }
-    Consultation addConsultation(Consultation c) { consultations.add(c); this.derniereConsultation = c.getDate(); return c; }
+        return sb.toString();
+    }
 }
