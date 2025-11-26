@@ -1,9 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Professionnel_de_Sante extends User {
     private String titre;
+    
+    private List<Disponibilite> disponibilites = new ArrayList<>();
 
     public String get_titre() {
         return this.titre;
@@ -12,9 +13,9 @@ public class Professionnel_de_Sante extends User {
     public void set_titre(String titre) {
         this.titre = titre;
     }
-    private List<Disponibilite> disponibilites = new ArrayList<>();
 
-    public Professionnel_de_Sante(String nom, String prenom, String telephone, String motDePasse, String adresse, String titre) {
+    public Professionnel_de_Sante(String nom, String prenom, String telephone, String motDePasse, String adresse,
+            String titre) {
         super(); // Appelle le constructeur de la classe parente (User)
         this.nom = nom;
         this.prenom = prenom;
@@ -27,15 +28,18 @@ public class Professionnel_de_Sante extends User {
     public List<Disponibilite> get_Disponibilites() {
         return disponibilites;
     }
+
     public void supprimer_Disponibilite(Disponibilite disponibilite) {
         this.disponibilites.remove(disponibilite);
     }
+
     public void modifier_Disponibilite(Disponibilite ancienneDisponibilite, Disponibilite nouvelleDisponibilite) {
         int index = this.disponibilites.indexOf(ancienneDisponibilite);
         if (index != -1) {
             this.disponibilites.set(index, nouvelleDisponibilite);
         }
     }
+
     public String afficher_Disponibilites() {
         StringBuilder sb = new StringBuilder();
         for (Disponibilite disponibilite : disponibilites) {
@@ -43,6 +47,7 @@ public class Professionnel_de_Sante extends User {
         }
         return sb.toString();
     }
+
     public String toString() {
         StringBuilder sb = new StringBuilder(128); // capacité initiale
         sb.append("Nom: ").append(nom).append(", \n");
@@ -52,13 +57,14 @@ public class Professionnel_de_Sante extends User {
 
         return sb.toString();
     }
+
     public void ajouter_Disponibilite(Disponibilite disponibilite) {
-    for (Disponibilite d : disponibilites) {
-        if (d.chevauche(disponibilite)) {
-            throw new IllegalArgumentException("Cette disponibilité chevauche une disponibilité existante !");
+        for (Disponibilite d : disponibilites) {
+            if (d.chevauche(disponibilite)) {
+                throw new IllegalArgumentException("Cette disponibilité chevauche une disponibilité existante !");
+            }
         }
-    }
-    this.disponibilites.add(disponibilite);
+        this.disponibilites.add(disponibilite);
     }
 
 }
