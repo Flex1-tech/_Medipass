@@ -20,15 +20,5 @@ public class GestionnaireDePatient extends Professionnel_de_Sante {
         return patient;
     }
 
-    public DossierMedical creerDossier(int nbConsultations,
-                                       List<Consultation> consultations,
-                                       String contenu,
-                                       List<String> antecedants) {
-        DossierMedical dossier = new DossierMedical();
-        dossier.setNbConsultations(nbConsultations);
-        dossier.setConsultations(consultations);
-        dossier.setContenu(contenu);
-        dossier.setAntecedants(antecedants);
-        return dossier;
-    }
+
 }

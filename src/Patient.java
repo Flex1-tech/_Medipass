@@ -4,15 +4,16 @@ import java.time.format.DateTimeFormatter;
 public class Patient extends User {
 
     private LocalDate date_Dernière_Consultation;
+    private final DossierMedical dossierMedical; // champ de classe (correct)
 
     public Patient(String nom, String prenom, String telephone, String motDePasse, String adresse) {
         super(); // Appelle le constructeur de la classe parente (User)
         this.nom = nom;
         this.prenom = prenom;
         this.telephone = telephone;
-        this.set_MotDePasse(motDePasse);
+        this.setMotDePasse(motDePasse);
         this.adresse = adresse;
-        private final DossierMedical dossierMedical;
+        this.dossierMedical = new DossierMedical(idUser, idUser, idUser, null, adresse); // initialisation requise pour final
     }
 
     @SuppressWarnings("unused")

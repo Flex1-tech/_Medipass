@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public abstract class User {
     protected static final String url = "jdbc:sqlite:data/medipass.db";
-    protected int idUser;
+    protected final int idUser;
     private static int compteur = 0;
     protected String nom;
     protected String prenom;
@@ -51,43 +51,41 @@ public abstract class User {
     this.idUser = ++compteur;  // Attribuer un ID unique à chaque utilisateur
     }
     
-    public int get_IdUser() {
+    public int getIdUser() {
         return idUser;
     }
-    protected void set_IdUser(int idUser) {
-        this.idUser = idUser;
-    }
-    public String get_Nom() {
+
+    public String getNom() {
         return nom;
     }
-    protected void set_Nom(String nom) {
+    protected void setNom(String nom) {
         this.nom = nom;
     }
-    public boolean get_EstMale() {
+    public boolean getEstMale() {
         return estMale;
     }
-    protected void set_EstMale(boolean estMale) {
+    protected void setEstMale(boolean estMale) {
         this.estMale = estMale;
     }
-    public String get_Adresse() {
+    public String getAdresse() {
         return adresse;
     }
-    protected void set_Adresse(String adresse) {
+    protected void setAdresse(String adresse) {
         this.adresse = adresse;
     }
-    public String get_Prenom() {
+    public String getPrenom() {
         return prenom;
     }
-    protected void set_Prenom(String prenom) {
+    protected void setPrenom(String prenom) {
         this.prenom = prenom;
     }
-    public String get_Telephone() {
+    public String getTelephone() {
         return telephone;
     }
-    protected void set_Telephone(String telephone) {
+    protected void setTelephone(String telephone) {
         this.telephone = telephone;
     }
-    protected void set_MotDePasse(String motDePasse) {
+    protected void setMotDePasse(String motDePasse) {
         this.motDePasse = BCrypt.hashpw(motDePasse, BCrypt.gensalt());
     }
     

@@ -20,7 +20,7 @@ public class Professionnel_de_Sante extends User {
         this.nom = nom;
         this.prenom = prenom;
         this.telephone = telephone;
-        this.set_MotDePasse(motDePasse);
+        this.setMotDePasse(motDePasse);
         this.adresse = adresse;
         this.titre = titre;
     }
