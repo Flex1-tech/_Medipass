@@ -33,7 +33,7 @@ public class Administrateur extends User{
 		System.out.print("Entrez son adresse: ");
 		String adressUser=scanner.nextLine();
 		
-		System.out.print("Entrez son mot de passe:");
+		System.out.print("Entrez son mot de passe: ");
 		String passwordUser=scanner.nextLine();
 		String hashedPassword=BCrypt.hashpw(passwordUser,BCrypt.gensalt());
 		
@@ -45,12 +45,13 @@ public class Administrateur extends User{
 		System.out.println("1 pour création de compte administrateur\n "
 					+ "2 pour création de compte patient\n "
 					+ "3 pour création de compte de professionnel de santé\n");
+		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
 		scanner.nextLine();
 		
 		if(choix==1) {
 			table="Administrateurs";
-			insertSql="INSERT INTO Administrateurs (nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
+			insertSql="INSERT INTO Administrateurs(nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
 			role="administrateur";
 		}
 		else if(choix==2) {
@@ -99,7 +100,7 @@ public class Administrateur extends User{
 						
 						int rows=stmt.executeUpdate();
 						if(rows>0) {
-							System.out.println(nomUser+"a été créé avec succès en tant que "+role);
+							System.out.println(nomUser+" a été créé avec succès en tant que "+role);
 						}
 			 }
 			
@@ -126,6 +127,7 @@ public class Administrateur extends User{
 			System.out.println("1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
 					+ "3 pour modifier compte professionnel de santé\n");
+			System.out.print("Choix: ");
 			int choix=scanner.nextInt();
 			
 			if(choix==1) {
@@ -240,6 +242,7 @@ public class Administrateur extends User{
 		System.out.println("1 pour suppression de compte administrateur\n "
 				+ "2 pour suppression de compte patient\n "
 				+ "3 pour suppression de compte de professionnel de santé\n");
+		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
 		
 		String table=null;
