@@ -4,17 +4,22 @@ import java.util.ArrayList;
 public class DossierMedical {
     
     private int idDossier;
+    private float poids;
     private int nbConsultations;
     private List<Consultation> consultations;
     private String contenu;
+    private List<Antecedant> antecedants;
 
     // Constructeur
-    public DossierMedical(int idDossier, int nbConsultations,
-                          List<Consultation> consultations, String contenu) {
+    public DossierMedical(int idDossier, float poids, int nbConsultations,
+                          List<Consultation> consultations, String contenu,
+                          List<Antecedant> antecedants) {
         this.idDossier = idDossier;
+        this.poids = poids;
         this.nbConsultations = nbConsultations;
         this.consultations = consultations;
         this.contenu = contenu;
+        this.antecedants = antecedants != null ? antecedants : new ArrayList<>();
     }
 
     // Méthodes
@@ -29,6 +34,13 @@ public class DossierMedical {
     public void afficherContenu() {
         System.out.println("Contenu du dossier : ");
         System.out.println(this.contenu);
+    }
+
+    public void ajouterAntecedant(Antecedant antecedant) {
+        if (this.antecedants == null) {
+            this.antecedants = new ArrayList<>();
+        }
+        this.antecedants.add(antecedant);
     }
 
     // Getters
@@ -52,10 +64,14 @@ public class DossierMedical {
         return contenu;
     }
 
+    public List<Antecedant> getAntecedants() {
+        return antecedants;
+    }
+
     // Méthode main
     public static void main(String[] args) {
         List<Consultation> consultations = new ArrayList<>();
-        DossierMedical dossier = new DossierMedical(1, 70.5f, 0, consultations, "Dossier initial");
+        DossierMedical dossier = new DossierMedical(1, 70.5f, 0, consultations, "Dossier initial", new ArrayList<>());
         
         dossier.ajouterInformation("Allergie aux pénicillines");
         dossier.afficherContenu();
