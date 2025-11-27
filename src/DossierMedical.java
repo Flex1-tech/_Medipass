@@ -5,8 +5,7 @@ public class DossierMedical {
     
     private int idDossier;
     private int nbConsultations;
-    private List<Consultation> consultations;
-    private String contenu;
+    private List<Consultation> consultations = new ArrayList<>();
 
     // Constructeur
     public DossierMedical(int idDossier, int nbConsultations,
@@ -36,10 +35,6 @@ public class DossierMedical {
         return idDossier;
     }
 
-    public float getPoids() {
-        return poids;
-    }
-
     public int getNbConsultations() {
         return nbConsultations;
     }
@@ -50,75 +45,5 @@ public class DossierMedical {
 
     public String getContenu() {
         return contenu;
-    }
-
-    // Méthode main
-    public static void main(String[] args) {
-        List<Consultation> consultations = new ArrayList<>();
-        DossierMedical dossier = new DossierMedical(1, 70.5f, 0, consultations, "Dossier initial");
-        
-        dossier.ajouterInformation("Allergie aux pénicillines");
-        dossier.afficherContenu();
-    }
-    
-    // Classe interne Consultation
-    static class Consultation {
-        private int idConsultation;
-        private DatePerso prevuPour;
-        private boolean estPasse;
-        private boolean aEteFait;
-
-        public Consultation(int idConsultation, DatePerso prevuPour, boolean estPasse, boolean aEteFait) {
-            this.idConsultation = idConsultation;
-            this.prevuPour = prevuPour;
-            this.estPasse = estPasse;
-            this.aEteFait = aEteFait;
-        }
-        
-        public int getIdConsultation() {
-            return idConsultation;
-        }
-        
-        public DatePerso getPrevuPour() {
-            return prevuPour;
-        }
-        
-        public boolean getEstPasse() {
-            return estPasse;
-        }
-        
-        public boolean getAEteFait() {
-            return aEteFait;
-        }
-    }
-    
-    // Classe interne DatePerso
-    static class DatePerso {
-        private int jour;
-        private int mois;
-        private int annee;
-        
-        public DatePerso(int jour, int mois, int annee) {
-            this.jour = jour;
-            this.mois = mois;
-            this.annee = annee;
-        }
-        
-        public int getJour() {
-            return jour;
-        }
-        
-        public int getMois() {
-            return mois;
-        }
-        
-        public int getAnnee() {
-            return annee;
-        }
-        
-        @Override
-        public String toString() {
-            return jour + "/" + mois + "/" + annee;
-        }
     }
 }

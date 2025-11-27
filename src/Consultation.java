@@ -2,6 +2,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Consultation {
     private static int compteur = 0;
@@ -10,6 +11,7 @@ public class Consultation {
     private LocalDate datePrevue;
     private String service; // Cardiologie, Dermatologie, etc.
     private String diagnostic;
+    private List<String> observations = new ArrayList<>();
     private boolean estPassee;
     private boolean aEteFaite;
 
@@ -59,6 +61,11 @@ public class Consultation {
     public void ajouterResultat(ResultatAnalyse r) {
         resultats.add(r);
     }
+
+    public void ajouterObservation(String observation) {
+        observations.add(observation);
+    }
+
 
     // --- Getters / Setters ---
     
@@ -117,6 +124,46 @@ public class Consultation {
     public List<ResultatAnalyse> getResultats() {
         return List.copyOf(resultats);
     }
+
+    public void getObservations() {
+        if (observations.isEmpty()) {
+            System.out.println("Aucune Observation pour cette consultation.");
+            return;
+        }
+        System.out.println("Obervation de la consultation :");
+        for (int i = 0; i < observations.size(); i++) {
+            System.out.println(i + " : " + observations.get(i)+ "\n");
+        }
+    }
+
+    public boolean supprimerObservation (int index) {
+        if (index < 0 || index >= observations.size()) {
+            System.out.println("Indice invalide. Aucune observation supprimée.");
+            return false;
+        }
+
+        String noteASupprimer = observations.get(index);
+        System.out.println("Vous allez supprimer l'observation suivante :");
+        System.out.println(noteASupprimer);
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Confirmez-vous la suppression ? (O/N) : ");
+        String reponse = scanner.nextLine().trim().toUpperCase();
+
+        if (reponse.equals("O")) {
+            observations.remove(index);
+            System.out.println("Observation supprimée.");
+            return true;
+        } else {
+            System.out.println("Suppression annulée.");
+            return false;
+        }
+    }
+
+    public void supprimerToutesLesObservations() {
+     observations.clear();
+    }
+
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
