@@ -12,4 +12,11 @@ public class GestionnaireDePatient extends Professionnel_de_Sante {
         return patient;
     }
 
+    public DossierMedical creerDossier(int nbConsultations,
+                                       List<Consultation> consultations,
+                                       String contenu,
+                                       List<Antecedant> antecedants) {
+        DossierMedical dossier = new DossierMedical(0, 0f, nbConsultations, consultations, contenu, antecedants);
+        return dossier;
+    }
 }

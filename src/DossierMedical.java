@@ -11,9 +11,11 @@ public class DossierMedical {
     public DossierMedical(int idDossier, int nbConsultations,
                           List<Consultation> consultations, String contenu) {
         this.idDossier = idDossier;
+        this.poids = poids;
         this.nbConsultations = nbConsultations;
         this.consultations = consultations;
         this.contenu = contenu;
+        this.antecedants = antecedants != null ? antecedants : new ArrayList<>();
     }
 
     // Méthodes
@@ -28,6 +30,13 @@ public class DossierMedical {
     public void afficherContenu() {
         System.out.println("Contenu du dossier : ");
         System.out.println(this.contenu);
+    }
+
+    public void ajouterAntecedant(Antecedant antecedant) {
+        if (this.antecedants == null) {
+            this.antecedants = new ArrayList<>();
+        }
+        this.antecedants.add(antecedant);
     }
 
     // Getters
