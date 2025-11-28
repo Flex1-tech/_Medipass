@@ -1,10 +1,13 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Scanner;
 
 public class Patient extends User {
 
+    private DossierMedical dossierMedical;
     private LocalDate date_Dernière_Consultation;
-    private final DossierMedical dossierMedical; // champ de classe (correct)
 
     public Patient(String nom, String prenom, String telephone, String motDePasse, String adresse) {
         super(); // Appelle le constructeur de la classe parente (User)
@@ -13,24 +16,16 @@ public class Patient extends User {
         this.telephone = telephone;
         this.setMotDePasse(motDePasse);
         this.adresse = adresse;
-        this.dossierMedical = new DossierMedical(idUser, idUser, idUser, null, adresse); // initialisation requise pour final
-    }
-
-    @SuppressWarnings("unused")
-    private void Programmer_Consultation() {
-        // Implémentation de la méthode Programmer_Consultation
+        this.dossierMedical = new DossierMedical();
     }
 
     public LocalDate get_Date_Dernière_Consultation() {
         return date_Dernière_Consultation;
     }
 
-    @SuppressWarnings("unused")
-    private void set_Date_Dernière_Consultation(String date) {
+    public void set_Date_Dernière_Consultation(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
         this.date_Dernière_Consultation = LocalDate.parse(date, formatter);
-
     }
 
     public String afficher_Date_Dernière_Consultation() {
@@ -39,6 +34,10 @@ public class Patient extends User {
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return date_Dernière_Consultation.format(formatter);
+    }
+
+    public DossierMedical getDossierMedical() {
+        return dossierMedical;
     }
 
     public String toString() {

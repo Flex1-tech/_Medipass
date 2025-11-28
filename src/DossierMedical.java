@@ -2,40 +2,19 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class DossierMedical {
-    
+    private static int compteur = 0;
     private int idDossier;
-    private int nbConsultations;
+    private int nbConsultations = 0;
     private List<Consultation> consultations = new ArrayList<>();
+    private List<String> antecedants = new ArrayList<>();
 
     // Constructeur
-    public DossierMedical(int idDossier, int nbConsultations,
-                          List<Consultation> consultations, String contenu) {
-        this.idDossier = idDossier;
-        this.poids = poids;
-        this.nbConsultations = nbConsultations;
-        this.consultations = consultations;
-        this.contenu = contenu;
-        this.antecedants = antecedants != null ? antecedants : new ArrayList<>();
+    public DossierMedical() {
+        this.idDossier = ++compteur;
     }
 
     // Méthodes
-    public void ajouterInformation(String info) {
-        this.contenu += "\n" + info;
-    }
-
-    public void modifierInformation(String nouveauContenu) {
-        this.contenu = nouveauContenu;
-    }
-
-    public void afficherContenu() {
-        System.out.println("Contenu du dossier : ");
-        System.out.println(this.contenu);
-    }
-
-    public void ajouterAntecedant(Antecedant antecedant) {
-        if (this.antecedants == null) {
-            this.antecedants = new ArrayList<>();
-        }
+    public void ajouterAntecedant(String antecedant) {
         this.antecedants.add(antecedant);
     }
 
@@ -52,7 +31,16 @@ public class DossierMedical {
         return consultations;
     }
 
-    public String getContenu() {
-        return contenu;
+    public List<String> getAntecedants() {
+        return antecedants;
     }
+
+    public void ajouterConsultation(Consultation consultation) {
+        this.consultations.add(consultation);
+        this.nbConsultations++;
+        
+        // On ajoute le diagnostic dans les antecedants
+        this.antecedants.add(consultation.getDiagnostic());
+    }
+
 }
