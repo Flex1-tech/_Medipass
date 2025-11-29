@@ -17,34 +17,48 @@ public abstract class User {
     protected String adresse;
     protected String motDePasse;
 
-    public boolean seConnecter() {
-        @SuppressWarnings("resource")
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Entrez votre numéro de téléphone : ");
-        String telephone = scanner.nextLine();
-
-        System.out.print("Entrez votre mot de passe : ");
-        String motDePasse = scanner.nextLine();
-
-        String sql = "SELECT motDePasse FROM users WHERE telephone = ?";
-
-        try (Connection conn = DriverManager.getConnection(url);
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+    public static User seConnecter(String telephone, String motDePasse) {
+        try (Connection conn = DriverManager.getConnection(url)) {
+            String query = "SELECT * FROM Users WHERE telephone = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, telephone);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String hash = rs.getString("motDePasse");
-                    return BCrypt.checkpw(motDePasse, hash);
+                    if (!BCrypt.checkpw(motDePasse, hash)) {
+                        System.out.println("Mot de passe incorrect !");
+                        return null;
+                    }
+
+                    String nom = rs.getString("nom");
+                    String prenom = rs.getString("prenom");
+                    String adresse = rs.getString("adresse");
+                    int idUser = rs.getInt("idUser");
+                    String typeUser = rs.getString("typeUser");
+
+                    switch (typeUser) {
+                        case "admin":
+                            return new Administrateur(idUser, nom, prenom, telephone, adresse);
+                        case "patient":
+                            return new Patient(idUser, nom, prenom, telephone, adresse);
+                        case "pro":
+                            String titre = rs.getString("titre");
+                            String categorie = rs.getString("categorie");
+                            return new ProfessionnelDeSante(idUser, nom, prenom, telephone, adresse, titre, categorie);
+                        default:
+                            System.out.println("Type d'utilisateur inconnu.");
+                            return null;
+                    }
+                } else {
+                    System.out.println("Utilisateur non trouvé !");
+                    return null;
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return false;
     }
 
     public User() {
