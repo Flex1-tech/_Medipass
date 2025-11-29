@@ -4,7 +4,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 public abstract class User {
     protected static final String url = "jdbc:sqlite:data/medipass.db";
@@ -17,77 +16,88 @@ public abstract class User {
     protected String adresse;
     protected String motDePasse;
 
-    public boolean seConnecter() {
-        @SuppressWarnings("resource")
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Entrez votre numéro de téléphone : ");
-        String telephone = scanner.nextLine();
-
-        System.out.print("Entrez votre mot de passe : ");
-        String motDePasse = scanner.nextLine();
-
-        String sql = "SELECT motDePasse FROM users WHERE telephone = ?";
-
-        try (Connection conn = DriverManager.getConnection(url);
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+    public static User seConnecter(String telephone, String motDePasse) {
+        try (Connection conn = DriverManager.getConnection(url)) {
+            String query = "SELECT * FROM Users WHERE telephone = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, telephone);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String hash = rs.getString("motDePasse");
-                    return BCrypt.checkpw(motDePasse, hash);
+                    if (!BCrypt.checkpw(motDePasse, hash)) {
+                        System.out.println("Mot de passe incorrect !");
+                        return null;
+                    }
+
+                    String nom = rs.getString("nom");
+                    String prenom = rs.getString("prenom");
+                    String adresse = rs.getString("adresse");
+                    int idUser = rs.getInt("idUser");
+                    String typeUser = rs.getString("typeUser");
+
+                    switch (typeUser) {
+                        case "admin":
+                            return new Administrateur(idUser, nom, prenom, telephone, adresse);
+                        case "patient":
+                            return new Patient(idUser, nom, prenom, telephone, adresse);
+                        case "pro":
+                            String titre = rs.getString("titre");
+                            return new Professionnel_de_Sante(idUser, nom, prenom, telephone, adresse, titre);
+                        default:
+                            System.out.println("Type d'utilisateur inconnu.");
+                            return null;
+                    }
+                } else {
+                    System.out.println("Utilisateur non trouvé !");
+                    return null;
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return false;
     }
 
     public User() {
     this.idUser = ++compteur;  // Attribuer un ID unique à chaque utilisateur
     }
     
-    public int get_IdUser() {
+    public int getIdUser() {
         return idUser;
     }
-    protected void set_IdUser(int idUser) {
-        this.idUser = idUser;
-    }
-    public String get_Nom() {
+
+    public String getNom() {
         return nom;
     }
-    protected void set_Nom(String nom) {
+    protected void setNom(String nom) {
         this.nom = nom;
     }
-    public boolean get_EstMale() {
+    public boolean getEstMale() {
         return estMale;
     }
-    protected void set_EstMale(boolean estMale) {
+    protected void setEstMale(boolean estMale) {
         this.estMale = estMale;
     }
-    public String get_Adresse() {
+    public String getAdresse() {
         return adresse;
     }
-    protected void set_Adresse(String adresse) {
+    protected void setAdresse(String adresse) {
         this.adresse = adresse;
     }
-    public String get_Prenom() {
+    public String getPrenom() {
         return prenom;
     }
-    protected void set_Prenom(String prenom) {
+    protected void setPrenom(String prenom) {
         this.prenom = prenom;
     }
-    public String get_Telephone() {
+    public String getTelephone() {
         return telephone;
     }
-    protected void set_Telephone(String telephone) {
+    protected void setTelephone(String telephone) {
         this.telephone = telephone;
     }
-    protected void set_MotDePasse(String motDePasse) {
+    protected void setMotDePasse(String motDePasse) {
         this.motDePasse = BCrypt.hashpw(motDePasse, BCrypt.gensalt());
     }
     

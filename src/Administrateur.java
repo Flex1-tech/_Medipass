@@ -14,8 +14,15 @@ public class Administrateur extends User{
         this.nom = nom;
         this.prenom = prenom;
         this.telephone = telephone;
-        this.set_MotDePasse(motDePasse);
+        this.setMotDePasse(motDePasse);
         this.adresse = adresse;
+	}
+	public Administrateur(int idUser, String nom, String prenom, String telephone, String adresse) {
+		this.idUser=idUser;
+		this.nom = nom;
+		this.prenom = prenom;
+		this.telephone = telephone;
+		this.adresse = adresse;
 	}
 	
 	public void creerUtilisateur() {
@@ -42,9 +49,9 @@ public class Administrateur extends User{
 		String role=null;
 		boolean estProSante=false;
 		
-		System.out.print("1 pour création de compte administrateur\n"
-		        + "2 pour création de compte patient\n"
-		        + "3 pour création de compte de professionnel de santé\n");
+		System.out.println("1 pour création de compte administrateur\n "
+					+ "2 pour création de compte patient\n "
+					+ "3 pour création de compte de professionnel de santé\n");
 		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
 		
@@ -123,7 +130,7 @@ public class Administrateur extends User{
 		String updateSql=null;
 		boolean estProSante=false;
 		
-			System.out.print("1 pour modifier compte administrateur\n"
+			System.out.println("1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
 					+ "3 pour modifier compte professionnel de santé\n");
 			System.out.print("Choix: ");
@@ -131,7 +138,7 @@ public class Administrateur extends User{
 			
 			if(choix==1) {
 				table="Administrateurs";
-				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
+				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=? WHERE nom=? AND prenom=?";
 			}
 			else if(choix==2) {
 				table="Patients";
@@ -139,7 +146,7 @@ public class Administrateur extends User{
 			}
 			else if(choix==3) {
 				table="ProfessionnelSante";
-				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=?,categorie=? WHERE nom=? AND prenom=?";
+				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
 				estProSante=true;
 			}
 			else {
@@ -238,8 +245,8 @@ public class Administrateur extends User{
 		String prenomUser=scanner.nextLine();
 		
 		
-		System.out.print("1 pour suppression de compte administrateur\n"
-				+ "2 pour suppression de compte patient\n"
+		System.out.println("1 pour suppression de compte administrateur\n "
+				+ "2 pour suppression de compte patient\n "
 				+ "3 pour suppression de compte de professionnel de santé\n");
 		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
@@ -354,6 +361,3 @@ public class Administrateur extends User{
 	
 		
 }
- 
-	
-	

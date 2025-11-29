@@ -1,3 +1,8 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,15 +19,24 @@ public class Professionnel_de_Sante extends User {
         this.titre = titre;
     }
 
-    public Professionnel_de_Sante(String nom, String prenom, String telephone, String motDePasse, String adresse,
-            String titre) {
+    public Professionnel_de_Sante(String nom, String prenom, String telephone, String motDePasse, String adresse, String titre) {
         super(); // Appelle le constructeur de la classe parente (User)
         this.nom = nom;
         this.prenom = prenom;
         this.telephone = telephone;
-        this.set_MotDePasse(motDePasse);
+        this.setMotDePasse(motDePasse);
         this.adresse = adresse;
         this.titre = titre;
+    }
+
+    public Professionnel_de_Sante(int idUser, String nom, String prenom, String telephone, String adresse,String titre2) {
+        this.idUser = idUser;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.titre = titre2;
+
     }
 
     public List<Disponibilite> get_Disponibilites() {
@@ -47,6 +61,34 @@ public class Professionnel_de_Sante extends User {
         }
         return sb.toString();
     }
+
+    public static List<Professionnel_de_Sante> getTousLesProfessionnels() {
+        List<Professionnel_de_Sante> pros = new ArrayList<>();
+
+        String query = "SELECT * FROM ProfessionnelDeSante";
+        try (Connection conn = DriverManager.getConnection(url);
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                Professionnel_de_Sante p = new Professionnel_de_Sante(
+                    rs.getString("nom"),
+                    rs.getString("prenom"),
+                    rs.getString("telephone"),
+                    rs.getString("mot_de_passe"),
+                    rs.getString("adresse"),
+                    rs.getString("titre")
+                );
+                pros.add(p);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return pros;
+    }
+
 
     public String toString() {
         StringBuilder sb = new StringBuilder(128); // capacité initiale

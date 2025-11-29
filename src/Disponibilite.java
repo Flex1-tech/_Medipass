@@ -11,6 +11,7 @@ public class Disponibilite {
     private Jour jour;
     private LocalTime heureDebut;
     private LocalTime heureFin;
+    private boolean estReservee = false;
     
     // constructeur avec des strings pour les heures
     public Disponibilite(Jour jour, String heureDebut, String heureFin) {
@@ -29,6 +30,7 @@ public class Disponibilite {
         this.jour = jour;
         this.heureDebut = heureDebut;
         this.heureFin = heureFin;
+
         
         if (this.heureDebut.isAfter(this.heureFin)) {
             throw new IllegalArgumentException("L'heure de début doit être avant l'heure de fin !");
@@ -46,6 +48,10 @@ public class Disponibilite {
     
     public LocalTime getHeureFin() {
         return heureFin;
+    }
+
+    public boolean getEstReservee() {
+        return estReservee;
     }
     
     // setters
@@ -94,7 +100,17 @@ public class Disponibilite {
         System.out.println(jour + " de " + heureDebut.format(formatter) + 
                           " à " + heureFin.format(formatter));
     }
+
+    public void reserver() {
+        if (estReservee) throw new IllegalStateException("Créneau déjà réservé !");
+        estReservee = true;
+    }
     
+    public void liberer() {
+        estReservee = false;
+    }
+
+
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
