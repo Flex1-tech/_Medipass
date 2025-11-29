@@ -1,11 +1,4 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Scanner;
-
-import org.mindrot.jbcrypt.BCrypt;
 
 public class Interface {
     public static int accueil(){
@@ -65,8 +58,8 @@ public class Interface {
                 if (user != null) {
                     if (user instanceof Patient) {
                         menuPatient((Patient) user);
-                    } else if (user instanceof ProfessionnelDeSante) {
-                        menuPro((ProfessionnelDeSante) user);
+                    } else if (user instanceof Professionnel_de_Sante) {
+                        menuPro((Professionnel_de_Sante) user);
                     } else if (user instanceof Administrateur) {
                         menuAdministrateur((Administrateur) user);
                     }
