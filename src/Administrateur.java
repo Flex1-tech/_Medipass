@@ -47,7 +47,6 @@ public class Administrateur extends User{
 		        + "3 pour création de compte de professionnel de santé\n");
 		System.out.print("Choix: ");
 		int choix=scanner.nextInt();
-		scanner.nextLine();
 		
 		if(choix==1) {
 			table="Administrateurs";
@@ -144,7 +143,7 @@ public class Administrateur extends User{
 				estProSante=true;
 			}
 			else {
-				System.out.println("Choix invalide.Veuillez réesayez.");
+				System.out.println("Choix invalide.");
 			}
 			
 		
