@@ -19,6 +19,15 @@ public class Patient extends User {
         this.dossierMedical = new DossierMedical();
     }
 
+    public Patient(int idUser, String nom, String prenom, String telephone, String adresse) {
+        this.idUser = idUser;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.dossierMedical = new DossierMedical();
+    }
+
     public LocalDate get_Date_Dernière_Consultation() {
         return date_Derniere_Consultation;
     }

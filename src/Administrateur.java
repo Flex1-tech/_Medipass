@@ -17,6 +17,13 @@ public class Administrateur extends User{
         this.setMotDePasse(motDePasse);
         this.adresse = adresse;
 	}
+	public Administrateur(int idUser, String nom, String prenom, String telephone, String adresse) {
+		this.idUser=idUser;
+		this.nom = nom;
+		this.prenom = prenom;
+		this.telephone = telephone;
+		this.adresse = adresse;
+	}
 	
 	public void creerUtilisateur() {
 		Scanner scanner=new Scanner(System.in);

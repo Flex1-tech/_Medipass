@@ -19,8 +19,7 @@ public class Professionnel_de_Sante extends User {
         this.titre = titre;
     }
 
-    public Professionnel_de_Sante(String nom, String prenom, String telephone, String motDePasse, String adresse,
-            String titre) {
+    public Professionnel_de_Sante(String nom, String prenom, String telephone, String motDePasse, String adresse, String titre) {
         super(); // Appelle le constructeur de la classe parente (User)
         this.nom = nom;
         this.prenom = prenom;
@@ -28,6 +27,16 @@ public class Professionnel_de_Sante extends User {
         this.setMotDePasse(motDePasse);
         this.adresse = adresse;
         this.titre = titre;
+    }
+
+    public Professionnel_de_Sante(int idUser, String nom, String prenom, String telephone, String adresse,String titre2) {
+        this.idUser = idUser;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.titre = titre2;
+
     }
 
     public List<Disponibilite> get_Disponibilites() {

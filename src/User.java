@@ -4,11 +4,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 public abstract class User {
     protected static final String url = "jdbc:sqlite:data/medipass.db";
-    protected final int idUser;
+    protected int idUser;
     private static int compteur = 0;
     protected String nom;
     protected String prenom;
@@ -44,8 +43,7 @@ public abstract class User {
                             return new Patient(idUser, nom, prenom, telephone, adresse);
                         case "pro":
                             String titre = rs.getString("titre");
-                            String categorie = rs.getString("categorie");
-                            return new ProfessionnelDeSante(idUser, nom, prenom, telephone, adresse, titre, categorie);
+                            return new Professionnel_de_Sante(idUser, nom, prenom, telephone, adresse, titre);
                         default:
                             System.out.println("Type d'utilisateur inconnu.");
                             return null;
