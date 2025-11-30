@@ -100,5 +100,23 @@ public abstract class User {
     protected void setMotDePasse(String motDePasse) {
         this.motDePasse = BCrypt.hashpw(motDePasse, BCrypt.gensalt());
     }
-    
+
+    public boolean exists(Connection conn) {
+        String sql = "SELECT idUser FROM Users WHERE telephone = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, this.telephone);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    this.idUser = rs.getInt("idUser");
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+        
 } 

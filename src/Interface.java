@@ -1,3 +1,4 @@
+import java.io.Console;
 import java.util.Scanner;
 
 public class Interface {
@@ -6,8 +7,9 @@ public class Interface {
         System.out.println("Veuillez declarer votre identité : ");
         System.out.println("1. Patient");
         System.out.println("2. Professionnel de santé");
-        System.out.println("3. Administrateur");
-        System.out.println("4. Quitter");
+        System.out.println("3. Gestionnaire de patient");
+        System.out.println("4. Administrateur");
+        System.out.println("5. Quitter");
 
         while (true) {
             Scanner scanner = new Scanner(System.in);
@@ -80,17 +82,66 @@ public class Interface {
 
 
     private static void menuPatient(Patient patient) {
-        System.out.println("=== Menu Patient ===");
+        System.out.println("=== Menu Patient === \n");
         // options: voir dossier, rendez-vous, etc.
     }
 
     private static void menuPro(Professionnel_de_Sante pro) {
-        System.out.println("=== Menu Professionnel de Santé ===");
+        System.out.println("=== Menu Professionnel de Santé === \n");
         // options: créer consultations, gérer patients, disponibilités, etc.
     }
 
+    private static void menuGestionnaire(GestionnaireDePatient gestionnaire) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("=== Menu Gestionnaire de Patient === \n");
+        System.out.print("Voulez-vous créer un patient ? (O/N) : ");
+        
+        if (sc.nextLine().equalsIgnoreCase("O")) {
+            Console console = System.console();
+            if (console == null) {
+                System.out.println("Console non disponible. Impossible de sécuriser la saisie du mot de passe.");
+                return;
+            }
+
+            System.out.println("=== Création d'un nouveau patient ===");
+            System.out.println("Nb : La création d'un patient crée aussi un dossier médical vierge.\n");
+
+            System.out.print("Entrez le nom : ");   
+            String nom = sc.nextLine();
+
+            System.out.print("Entrez les prénoms : ");
+            String prenoms = sc.nextLine();
+
+            System.out.print("Entrez le téléphone : ");
+            String telephone = sc.nextLine();
+
+            String motDePasse;
+            while (true) {
+                System.out.print("Entrez le mot de passe : ");
+                motDePasse = new String(console.readPassword());
+
+                System.out.print("Confirmez le mot de passe : ");
+                String confirmation = new String(console.readPassword());
+
+                if (motDePasse.equals(confirmation)) {
+                    break;
+                }
+
+                System.out.println(" Les mots de passe ne correspondent pas. Veuillez réessayer.\n");
+            }
+
+            System.out.print("Entrez l'adresse : ");
+            String adresse = sc.nextLine();
+
+
+            gestionnaire.creerPatient(nom, prenoms, telephone, motDePasse, adresse);
+        } else {
+            System.out.println("Retour au menu principal.");
+        }
+    }
+
     private static void menuAdministrateur(Administrateur admin) {
-        System.out.println("=== Menu Administrateur ===");
+        System.out.println("=== Menu Administrateur === \n");
         // options: gérer utilisateurs, statistiques, etc.
     }
 

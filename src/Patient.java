@@ -19,6 +19,16 @@ public class Patient extends User {
         this.dossierMedical = new DossierMedical();
     }
 
+    public Patient(String nom, String prenom, String telephone, String adresse, DossierMedical dossierMedical, LocalDate dateDerniereConsultation) {
+        super(); // Appelle le constructeur de la classe parente (User)
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.dossierMedical = dossierMedical;
+        this.date_Derniere_Consultation = dateDerniereConsultation;
+    }
+
     public Patient(int idUser, String nom, String prenom, String telephone, String adresse) {
         this.idUser = idUser;
         this.nom = nom;

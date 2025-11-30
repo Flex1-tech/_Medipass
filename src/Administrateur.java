@@ -68,7 +68,7 @@ public class Administrateur extends User{
 		}
 		else if(choix==3) {
 			table="ProfessionnelSante";
-			insertSql="INSERT INTO ProfessionnelSante(nom,prenom,telephone,adresse,motDePasse,categorie) VALUES(?,?,?,?,?,?)";
+			insertSql="INSERT INTO ProfessionnelSante(nom,prenom,telephone,adresse,motDePasse) VALUES(?,?,?,?,?)";
 			estProSante=true;
 			role="professionnel de santé";
 		}
