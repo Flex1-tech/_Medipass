@@ -48,36 +48,47 @@ public class Administrateur extends User{
 		String insertSql=null;
 		String role=null;
 		boolean estProSante=false;
+		while(true) {
+			System.out.println("1 pour création de compte administrateur\n"
+					+"2 pour création de compte patient\n"
+					+"3 pour création de compte de professionnel de santé\n");
+			System.out.print("Choix: ");
+			
+			if(!scanner.hasNextInt()) {
+				System.out.println("Vous devez entrer un nombre entre 1, 2 ou 3");
+				scanner.nextLine();
+				continue;
+			}
+			
+			int choix=scanner.nextInt();
+			scanner.nextLine();
+			
+			switch(choix) {
+		         case 1: table="Administrateurs";
+		                 insertSql="INSERT INTO Administrateurs(nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
+		                 role="administrateur";
+			             break;
+			        
+		         case 2: table="Patients";
+		                 insertSql="INSERT INTO Patients(nom,prenom,telephone,adresse,motDePasse) VALUES(?,?,?,?,?)";
+		                 role="patient";
+			             break;
+			        
+		         case 3: table="ProfessionnelSante";
+		                 insertSql="INSERT INTO ProfessionnelSante(nom,prenom,telephone,adresse,motDePasse,categorie) VALUES(?,?,?,?,?,?)";
+			             estProSante=true;
+			             role="professionnel de santé";
+		                 break;
+		            
+		         default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
+		                  continue;
+		    }
 		
-		System.out.println("1 pour création de compte administrateur\n "
-					+ "2 pour création de compte patient\n "
-					+ "3 pour création de compte de professionnel de santé\n");
-		System.out.print("Choix: ");
-		int choix=scanner.nextInt();
-		scanner.nextLine();
-		
-		if(choix==1) {
-			table="Administrateurs";
-			insertSql="INSERT INTO Administrateurs(nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
-			role="administrateur";
-		}
-		else if(choix==2) {
-			table="Patients";
-			insertSql="INSERT INTO Patients(nom,prenom,telephone,adresse,motDePasse) VALUES(?,?,?,?,?)";
-			role="patient";
-		}
-		else if(choix==3) {
-			table="ProfessionnelSante";
-			insertSql="INSERT INTO ProfessionnelSante(nom,prenom,telephone,adresse,motDePasse) VALUES(?,?,?,?,?)";
-			estProSante=true;
-			role="professionnel de santé";
-		}
-		else {
-			System.out.println("Choix invalide.");
+			break;
+			
 		}
 		
-		
-		String checkSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=? AND telephone=?";
+	   String checkSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=? AND telephone=?";
 		
 		try(Connection conn=DriverManager.getConnection(url);
 			PreparedStatement checkStmt=conn.prepareStatement(checkSql)){
@@ -114,7 +125,7 @@ public class Administrateur extends User{
 		}
 			
 			catch(SQLException e) {
-				e.printStackTrace();
+				System.out.println("Une erreur s'est produite lors de la création de l'utilisateur");
 			}
     }
 	
@@ -131,28 +142,39 @@ public class Administrateur extends User{
 		String updateSql=null;
 		boolean estProSante=false;
 		
+		while(true) {
 			System.out.println("1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
 					+ "3 pour modifier compte professionnel de santé\n");
 			System.out.print("Choix: ");
-			int choix=scanner.nextInt();
 			
-			if(choix==1) {
-				table="Administrateurs";
-				updateSql="UPDATE Administrateurs SET nom=?,prenom=?,adresse=?,telephone=? WHERE nom=? AND prenom=?";
+			if(!scanner.hasNextInt()) {
+				System.out.println("Vous devez entrer un nombre entre 1, 2 ou 3");
+				scanner.nextLine();
+				continue;
 			}
-			else if(choix==2) {
-				table="Patients";
-				updateSql="UPDATE Patients SET nom=?,prenom=?,adresse=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
-			}
-			else if(choix==3) {
-				table="ProfessionnelSante";
-				updateSql="UPDATE ProfessionnelSante SET nom=?,prenom=?,telephone=?,motDePasse=? WHERE nom=? AND prenom=?";
-				estProSante=true;
-			}
-			else {
-				System.out.println("Choix invalide.Veuillez réesayez.");
-			}
+			
+			int choix=scanner.nextInt();
+			scanner.nextLine();
+			
+			switch(choix){
+		    case 1: table="Administrateurs";
+			        break;
+			        
+		    case 2: table="Patients";
+			        break;
+			        
+		    case 3: table="ProfessionnelSante";
+		            break;
+		            
+		    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
+		             continue;
+		    }
+		
+		    break;
+		    
+		}
+			
 			
 		
 		String checkExistSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=?";
@@ -229,6 +251,13 @@ public class Administrateur extends User{
 		}
 
 	        catch (SQLException e) {
+	        	
+	        	if(e.getSQLState()!= null && e.getSQLState().startsWith("08")) {
+	        		System.out.println("Erreur: impossible de se connecter à la base de données.");
+	        	}
+	        	else {
+	        		System.out.println("Une erreur SQL est survenue: "+e.getMessage());
+	        	}
 	            e.printStackTrace();
 	        }
 			
@@ -245,31 +274,46 @@ public class Administrateur extends User{
 		System.out.print("Entrez son/ses prénoms(s): ");
 		String prenomUser=scanner.nextLine();
 		
-		
-		System.out.println("1 pour suppression de compte administrateur\n "
-				+ "2 pour suppression de compte patient\n "
-				+ "3 pour suppression de compte de professionnel de santé\n");
-		System.out.print("Choix: ");
-		int choix=scanner.nextInt();
-		
 		String table=null;
 		String role=null;
 		
-		if(choix==1) {
-			table="Administrateurs";
-			role="administrateur";
+		while(true) {
+			System.out.println("1 pour suppression de compte administrateur\n"
+					+ "2 pour suppression de compte patient\n"
+					+ "3 pour suppression de compte de professionnel de santé\n");
+			System.out.print("Choix: ");
+			
+			if(!scanner.hasNextInt()) {
+				System.out.println("Vous devez entrer un nombre entre 1, 2 ou 3");
+				scanner.nextLine();
+				continue;
+			}
+			
+			int choix=scanner.nextInt();
+			scanner.nextLine();
+			
+			switch(choix){
+			    case 1: table="Administrateurs";
+				        role="administrateur";
+				        break;
+				        
+			    case 2: table="Patients";
+				        role="patient";
+				        break;
+				        
+			    case 3: table="ProfessionnelSante";
+			            role="professionnel de santé";
+			            break;
+			            
+			    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
+			             continue;
+			}
+			
+			break;
+			
 		}
-		else if(choix==2) {
-			table="Patients";
-			role="patient";
-		}
-		else if(choix==3) {
-			table="ProfessionnelSante";
-			role="professionnel de santé";
-		}
-		else {
-			System.out.println("Choix invalide.");
-		}
+		
+		
 		
 		String checkSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=?";
 		String deleteSql="DELETE FROM "+table+" WHERE nom=? AND prenom=?";
