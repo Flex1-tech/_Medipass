@@ -89,9 +89,76 @@ public class Interface {
         // options: créer consultations, gérer patients, disponibilités, etc.
     }
 
-    private static void menuAdministrateur(Administrateur admin) {
-        System.out.println("=== Menu Administrateur ===");
-        // options: gérer utilisateurs, statistiques, etc.
+    public static int menuAdministrateur(Administrateur admin) {
+        Scanner scanner=new Scanner(System.in);
+        
+        while(true) {
+        	System.out.println("=== Menu Administrateur ===");
+        	System.out.println("1.Créer un utilisateur");
+        	System.out.println("2.Modifier les informations d'un utilisateur");
+        	System.out.println("3.Supprimer un utilisateur");
+        	System.out.println("4.Afficher les statistiques du système");
+        	System.out.println("5.Déconnexion");
+        	System.out.print("Choix: ");
+        	
+        	try {
+        		int choix=Integer.parseInt(scanner.nextLine());
+        		if(choix>=1 && choix<=5) {
+        			return choix;
+        		}
+        		else System.out.println("Choix invalide, veuillez entrer un nombre entre 1 et 5");
+        	}
+        	catch(NumberFormatException e) {
+        		System.out.println("Erreur: veuillez entrer un nombre valide.");
+        	}
+        	
+        }
+        
+    }
+    
+    public static void startAdministrateur(Administrateur admin) {
+    	while(true) {
+    		int choix=menuAdministrateur(admin);
+    		switch(choix) {
+    		    case 1:
+    		    	try {
+    		    		admin.creerUtilisateur();
+    		    	} catch(Exception e) {
+    		    		System.out.println("Erreur lors de la création de l'utilisateur");
+    		    	}
+    		    	break;
+    		    	
+    		    case 2:
+    		    	try {
+    		    		admin.modifierInfosUtilisateur();
+    		    	} catch(Exception e) {
+    		    		System.out.println("Erreur lors de la modification des informations de l'utilisateur");
+    		    	}
+    		    	break;
+    		    	
+    		    case 3:
+    		    	try {
+    		    		admin.supprimerUtilisateur();
+    		    	} catch(Exception e) {
+    		    		System.out.println("Erreur lors de la suppression de l'utilisateur");
+    		    	}
+    		    	break;
+    		    	
+    		    case 4:
+    		    	try {
+    		    		admin.afficherStatsSysteme();
+    		    	} catch(Exception e) {
+    		    		System.out.println("Erreur lors de l'affichage des statistiques du système");
+    		    	}
+    		    	break;
+    		    	
+    		    case 5: System.out.println("Déconnexion réussie.Retour à l'accueil...");
+    		            start();
+    		            return;
+    		}
+    		
+    	}
+    	
     }
 
 
