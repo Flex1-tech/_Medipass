@@ -1,6 +1,7 @@
 import java.io.Console;
 import java.sql.SQLException;
 import java.util.Scanner;
+import java.util.List;
 
 public class Interface {
     public static int accueil(){
@@ -34,14 +35,15 @@ public class Interface {
     
     public static User connexion() {
         Scanner scanner = new Scanner(System.in);
-        Console console = System.console();
+        //Console console = System.console();
 
         System.out.print("Entrez votre numéro de téléphone : ");
         String telephone = scanner.nextLine();
         
         System.out.print("Entrez votre mot de passe : ");
-        String motDePasse = new String(console.readPassword());
-
+        //String motDePasse = new String(console.readPassword());
+        String motDePasse = scanner.nextLine();
+        
         User userConnecte = User.seConnecter(telephone, motDePasse);
         if (userConnecte != null) {
             System.out.println("Connexion réussie !");
@@ -86,7 +88,7 @@ public class Interface {
                 case 4: // Administrateur
 
                     if (user instanceof Administrateur) {
-                        menuAdministrateur((Administrateur) user);
+                        startAdministrateur((Administrateur) user);
                     }else {
                         System.err.println("Erreur : vous n'êtes pas un Administrateur !");
                     }
@@ -109,9 +111,124 @@ public class Interface {
 
 
     private static void menuPatient(Patient patient) {
-        System.out.println("=== Menu Patient === \n");
-        // options: voir dossier, rendez-vous, etc.
-    }
+    	Scanner scanner = new Scanner(System.in);
+    	
+        //System.out.println("== Menu Patient === \n");
+     	int choix = 0;
+     	
+     	while (choix != 3){
+             System.out.println("\n=== Menu Patient ==="); 
+             System.out.println("Bienvenue, " + patient.getNom() + " " + patient.getPrenom() + "!\n");
+             System.out.println("1. Consulter mon dossier médical");
+             System.out.println("2. Programmer une consultation");
+             System.out.println("3. Déconnexion");
+             
+             while (true) {
+                 System.out.print("Votre choix : ");
+
+                 try {
+                     choix = Integer.parseInt(scanner.nextLine());
+
+                     if (choix >= 1 && choix <= 3) {
+                         break;  // Sortie de la boucle , choix valide
+                     } else {
+                         System.out.println("Choix invalide, veuillez entrer un nombre entre 1 et 3.");
+                     }
+                     
+                 } catch (NumberFormatException e) {
+                     System.out.println("Erreur : veuillez entrer un nombre valide");
+                 }
+             }
+             
+             switch (choix) 
+             {
+             case 1:
+                 consulterDossier(patient); 
+                 break;
+             case 2:
+                 programmerConsultation(patient); 
+                 break;
+             case 3:
+                 System.out.println("Déconnexion...");
+                 break; 
+             default:
+                 break; 
+             }
+     	}
+     	
+     	start(); // Retour à l'accueil
+     }
+
+    
+    
+     private static void consulterDossier(Patient patient) {
+         Scanner scanner = new Scanner(System.in); 
+         
+         DossierMedical dossier = patient.getDossierMedical();
+      // Utilisation des getters pour les informations du user (Patient)
+         System.out.println("\n=============================================");
+         System.out.println("    DOSSIER MÉDICAL DE " + patient.getNom().toUpperCase() + " " + patient.getPrenom().toUpperCase()); 
+         System.out.println("    ID Dossier : " + dossier.getIdDossier());
+         System.out.println("=============================================");
+         System.out.println("\n[ INFORMATIONS PERSONNELLES DU PATIENT ]");
+         System.out.println("   Nom du patient : " + patient.getPrenom() + " " + patient.getNom());
+         System.out.println("   Téléphone : " + patient.getTelephone()); 
+         System.out.println("   Adresse : " + patient.getAdresse());     
+         System.out.println("   Dernière Consultation : " + patient.afficher_Date_Dernière_Consultation());
+
+
+         System.out.println("\n[ ANTÉCÉDENTS ET DIAGNOSTICS ]");
+         
+         List<String> antecedents = dossier.getAntecedants(); 
+         
+         if (antecedents.isEmpty()) {
+             System.out.println("   --> Aucun antécédent ou diagnostic enregistré.");
+         } else {
+             int i = 1;
+             System.out.println("   Liste des Antécédents :");
+             for (String ant : antecedents) {
+                 System.out.println("   " + (i++) + ". " + ant); 
+             }
+         }
+         
+         System.out.println("\n[ HISTORIQUE DE CONSULTATIONS (Total: " + dossier.getNbConsultations() + ") ]");
+         
+         List<Consultation> consultations = dossier.getConsultations();
+         
+         if (consultations.isEmpty()) {
+             System.out.println("   --> Aucune consultation enregistrée.");
+         } else {
+             for (Consultation consult : consultations) {
+                 System.out.println("\n----------------- CONSULTATION #" + consult.getIdConsultation() + " -----------------");
+                 // Le .toString() de Consultation nous permet  d'afficher les détails (date, pro, raisons, ........)
+                 System.out.println(consult.toString()); 
+                 System.out.println("-------------------------------------------------------------------");
+             }
+         }
+
+         System.out.println("\n=============================================");
+         System.out.println("    FIN DU DOSSIER MÉDICAL");
+         System.out.println("=============================================");
+         
+         // Pause pour l'expérience utilisateur
+         System.out.print("\nAppuyez sur ENTRÉE pour revenir au Menu Patient...");
+         scanner.nextLine();
+     }
+
+
+     private static void programmerConsultation(Patient patient) {
+         
+         System.out.println("\n--- Programmation d'une Consultation ---");
+         //Appelle de la méthode programmer consultation de l'ojet patient
+         Consultation nouvelleConsultation = patient.programmer_Consultation(); 
+         
+         if (nouvelleConsultation == null) {
+             System.out.println("\n💢 Programmation annulée ou impossible.");
+         } else {
+             System.out.println("\n✅ Consultation programmée avec succès !");
+         }
+         
+     }
 
     private static boolean menuPro(Professionnel_de_Sante pro) {
         Scanner scanner = new Scanner(System.in);
@@ -325,7 +442,7 @@ public class Interface {
         Scanner scanner=new Scanner(System.in);
         
         while(true) {
-        	System.out.println("=== Menu Administrateur ===");
+        	System.out.println("=== Menu Administrateur ===\n");
         	System.out.println("1.Créer un utilisateur");
         	System.out.println("2.Modifier les informations d'un utilisateur");
         	System.out.println("3.Supprimer un utilisateur");

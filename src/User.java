@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 
 public abstract class User {
-    protected static final String url = "jdbc:sqlite:data/medipass.db";
+    protected static final String url = "jdbc:sqlite:data/Medipass.db";
     protected int idUser;
     private static int compteur = 0;
     protected String nom;
