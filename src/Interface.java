@@ -34,11 +34,13 @@ public class Interface {
     
     public static User connexion() {
         Scanner scanner = new Scanner(System.in);
+        Console console = System.console();
+
         System.out.print("Entrez votre numéro de téléphone : ");
         String telephone = scanner.nextLine();
         
         System.out.print("Entrez votre mot de passe : ");
-        String motDePasse = scanner.nextLine();
+        String motDePasse = new String(console.readPassword());
 
         User userConnecte = User.seConnecter(telephone, motDePasse);
         if (userConnecte != null) {
