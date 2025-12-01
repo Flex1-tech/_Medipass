@@ -1,4 +1,8 @@
 import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 public class DossierMedical {
@@ -11,6 +15,11 @@ public class DossierMedical {
     // Constructeur
     public DossierMedical() {
         this.idDossier = ++compteur;
+    }
+
+    public void mettreAJourNbconsultations(){
+        this.nbConsultations = this.consultations.size();
+        return;
     }
 
     // Méthodes
@@ -41,6 +50,68 @@ public class DossierMedical {
         
         // On ajoute le diagnostic dans les antecedants
         this.antecedants.add(consultation.getDiagnostic());
+    }
+
+    public void save(Connection conn, int idUser) {
+        try {
+
+            // Vérifier si un dossier existe déjà
+            String sqlCheck = "SELECT idDossier FROM DossierMedical WHERE idPatient = ?";
+            boolean existe = false;
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlCheck)) {
+                pstmt.setInt(1, idUser);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        this.idDossier = rs.getInt("idDossier");
+                        existe = true;
+                    }
+                }
+            }
+
+            // INSERT si aucun dossier n’existe
+            if (!existe) {
+                String sqlInsert = "INSERT INTO DossierMedical (idPatient) VALUES (?)";
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
+                    pstmt.setInt(1, idUser);
+                    pstmt.executeUpdate();
+
+                    try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            this.idDossier = rs.getInt(1);
+                        }
+                    }
+                }
+            }
+
+            //  Sauvegarde des antécédents
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "DELETE FROM Antecedents WHERE idDossier=?")) {
+                pstmt.setInt(1, this.idDossier);
+                pstmt.executeUpdate();
+            }
+
+            String sqlInsertAnte = "INSERT INTO Antecedents (idDossier, texte) VALUES (?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertAnte)) {
+                if (antecedants != null) {
+                    for (String antecedant : antecedants) {
+                        pstmt.setInt(1, this.idDossier);
+                        pstmt.setString(2, antecedant);
+                        pstmt.executeUpdate();
+                    }
+                }
+            }
+
+            // 4) Sauvegarde des consultations
+            for (Consultation c : consultations) {
+                c.save(conn, idUser);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

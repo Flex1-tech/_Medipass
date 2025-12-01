@@ -1,3 +1,5 @@
+import java.sql.Connection;
+
 public class ResultatAnalyse {
     private String typeAnalyse; // "Glycémie", "CRP", "VIH", etc.
     private String valeur; // "8.2", "Négatif", "++"
@@ -50,5 +52,24 @@ public class ResultatAnalyse {
 
         return sb.toString();
     }
+
+    public void save(Connection conn, int idConsultation) {
+        String sql = "INSERT INTO ResultatsAnalyse (idConsultation, typeAnalyse, valeur, unite, interpretation) VALUES (?, ?, ?, ?, ?)";
+
+        try (var pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, idConsultation);
+            pstmt.setString(2, this.typeAnalyse);
+            pstmt.setString(3, this.valeur);
+            pstmt.setString(4, this.unite);             
+            pstmt.setString(5, this.interpretation); 
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

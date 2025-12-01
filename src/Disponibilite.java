@@ -179,9 +179,15 @@ public class Disponibilite {
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return jour + " : " + heureDebut.format(formatter) + 
-               " - " + heureFin.format(formatter);
+        String statut = estReservee ? " (réservé)" : " (libre)";
+        
+        return jour + " : " 
+            + heureDebut.format(formatter) 
+            + " - " 
+            + heureFin.format(formatter)
+            + statut;
     }
+
 
     public boolean delete(Connection conn) {
         if (idDispo <= 0) return false;
