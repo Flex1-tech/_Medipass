@@ -86,7 +86,7 @@ public class Interface {
                 case 4: // Administrateur
 
                     if (user instanceof Administrateur) {
-                        menuAdministrateur((Administrateur) user);
+                        startAdministrateur((Administrateur) user);
                     }else {
                         System.err.println("Erreur : vous n'êtes pas un Administrateur !");
                     }
@@ -325,7 +325,7 @@ public class Interface {
         Scanner scanner=new Scanner(System.in);
         
         while(true) {
-        	System.out.println("=== Menu Administrateur ===");
+        	System.out.println("=== Menu Administrateur ===\n");
         	System.out.println("1.Créer un utilisateur");
         	System.out.println("2.Modifier les informations d'un utilisateur");
         	System.out.println("3.Supprimer un utilisateur");
