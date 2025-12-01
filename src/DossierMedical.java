@@ -1,4 +1,7 @@
+
+import java.time.LocalDate;
 import java.util.List;
+
 import java.util.ArrayList;
 
 public class DossierMedical {
@@ -32,6 +35,8 @@ public class DossierMedical {
         System.out.println("Contenu du dossier : ");
         System.out.println(this.contenu);
     }
+    
+    
 
     // Getters
     public int getIdDossier() {
@@ -61,7 +66,12 @@ public class DossierMedical {
         
         dossier.ajouterInformation("Allergie aux pénicillines");
         dossier.afficherContenu();
-    }
+        Antecedant antecedantDossierMedical = new Antecedant (1,Antecedant.Type.CHIRURGIE,"Crise cardiaque",  LocalDate.of(2003,11,5));
+        
+        System.out.println( antecedantDossierMedical.toString());
+    }   
+    
+    
     
     // Classe interne Consultation
     static class Consultation {
@@ -123,4 +133,51 @@ public class DossierMedical {
             return jour + "/" + mois + "/" + annee;
         }
     }
+    
+     static class Antecedant {
+
+        public enum Type {
+            PATHOLOGIE,
+            CHIRURGIE,
+            ALLERGIE,
+            TRAITEMENT,
+            AUTRE
+        }
+
+        private int idAntecedant;
+        private Type type;
+        private String description;
+        private LocalDate date;
+
+        public Antecedant(int idAntecedant, Type type, String description, LocalDate date) {
+            this.idAntecedant = idAntecedant;
+            this.type = type;
+            this.description = description;
+            this.date = date;
+        }
+
+        public int getIdAntecedant() {
+            return idAntecedant;
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public LocalDate getDate() {
+            return date;
+        }
+
+        @Override
+        public String toString() {
+            return (type + " : " + description + (date != null ? (" (" + date + ")") : ""));
+        }
+    }
+    
+    
+    
 }
