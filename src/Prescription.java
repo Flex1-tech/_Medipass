@@ -1,3 +1,5 @@
+import java.sql.Connection;
+
 public class Prescription {
     private String medicament;
     private String posologie;
@@ -42,5 +44,17 @@ public class Prescription {
 
         return sb.toString();
     }
-    
+    public void save(Connection conn, int idConsultation) {
+        String sql = "INSERT INTO Prescriptions (idConsultation, medicament, posologie, duree) VALUES (?, ?, ?, ?)";
+        try (var pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idConsultation);
+            pstmt.setString(2, this.medicament);
+            pstmt.setString(3, this.posologie);
+            pstmt.setString(4, this.duree);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

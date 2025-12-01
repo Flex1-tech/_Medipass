@@ -1,6 +1,13 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -19,6 +26,16 @@ public class Patient extends User {
         this.dossierMedical = new DossierMedical();
     }
 
+    public Patient(String nom, String prenom, String telephone, String adresse, DossierMedical dossierMedical, LocalDate dateDerniereConsultation) {
+        super(); // Appelle le constructeur de la classe parente (User)
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.dossierMedical = dossierMedical;
+        this.date_Derniere_Consultation = dateDerniereConsultation;
+    }
+
     public Patient(int idUser, String nom, String prenom, String telephone, String adresse) {
         this.idUser = idUser;
         this.nom = nom;
@@ -26,6 +43,17 @@ public class Patient extends User {
         this.telephone = telephone;
         this.adresse = adresse;
         this.dossierMedical = new DossierMedical();
+    }
+
+    public Patient(int idUser, String nom, String prenom, String telephone, String adresse, DossierMedical dossier, LocalDate dateDerniere) {
+        this.idUser = idUser;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.dossierMedical = dossier;
+        this.date_Derniere_Consultation = dateDerniere;
+
     }
 
     public LocalDate get_Date_Dernière_Consultation() {
@@ -176,4 +204,125 @@ public class Patient extends User {
 
         return sb.toString();
     }
+
+    public void afficherConsultationsPrevues() {
+        System.out.println("=== Vos consultations prévues ===");
+
+        List<Consultation> aVenir = this.getConsultationsAVenir();
+
+        if (aVenir.isEmpty()) {
+            System.out.println("Aucune consultation prévue.");
+            return;
+        }
+
+        for (Consultation c : aVenir) {
+            System.out.println(
+                "Consultation #" + c.getIdConsultation() +
+                "\n  Date      : " + c.getDatePrevue() +
+                "\n  Service   : " + c.getService() +
+                "\n  Docteur   : " + c.getProfessionnelDeSante().getNom() + " " + c.getProfessionnelDeSante().getPrenom() +
+                "\n-------------------------------------"
+            );
+        }
+    }
+
+    public List<Consultation> getConsultationsAVenir() {
+        List<Consultation> resultat = new ArrayList<>();
+
+        LocalDate today = LocalDate.now();
+
+        for (Consultation c : this.getDossierMedical().getConsultations()) {
+            if (c.getDatePrevue().isAfter(today)) {
+                resultat.add(c);
+            }
+        }
+
+        return resultat;
+    }
+
+
+    public boolean save() {
+        Connection conn = null;
+        PreparedStatement pstmtUser = null;
+        PreparedStatement pstmtPatient = null;
+
+        try {
+            conn = DriverManager.getConnection(url);
+            conn.setAutoCommit(false);
+
+            boolean existe = this.exists(conn); 
+
+            // INSERT ou UPDATE USER
+            if (existe) {
+
+                String sqlUser = "UPDATE Users SET nom=?, prenom=?, telephone=?, adresse=? WHERE idUser=?";
+                pstmtUser = conn.prepareStatement(sqlUser);
+                pstmtUser.setString(1, nom);
+                pstmtUser.setString(2, prenom);
+                pstmtUser.setString(3, telephone);
+                pstmtUser.setString(4, adresse);
+                pstmtUser.setInt(5, idUser);
+                pstmtUser.executeUpdate();
+
+            } else {
+
+                String sqlUser = "INSERT INTO Users (nom, prenom, telephone, motDePasse, adresse, typeUser)"
+                        + " VALUES (?, ?, ?, ?, ?, 'patient')";
+                pstmtUser = conn.prepareStatement(sqlUser, Statement.RETURN_GENERATED_KEYS);
+                pstmtUser.setString(1, nom);
+                pstmtUser.setString(2, prenom);
+                pstmtUser.setString(3, telephone);
+                pstmtUser.setString(4, motDePasse);
+                pstmtUser.setString(5, adresse);
+                pstmtUser.executeUpdate();
+
+                try (ResultSet keys = pstmtUser.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        idUser = keys.getInt(1);
+                    }
+                }
+            }
+
+            // --- INSERT / UPDATE PATIENT ---
+            if (existe) {
+                String sqlPatient = "UPDATE Patients SET dateDerniereConsultation=? WHERE idPatient=?";
+                pstmtPatient = conn.prepareStatement(sqlPatient);
+                pstmtPatient.setString(1,
+                        date_Derniere_Consultation != null
+                                ? date_Derniere_Consultation.toString()
+                                : null);
+                pstmtPatient.setInt(2, idUser);
+                pstmtPatient.executeUpdate();
+
+            } else {
+                String sqlPatient = "INSERT INTO Patients (idPatient, dateDerniereConsultation) VALUES (?, ?)";
+                pstmtPatient = conn.prepareStatement(sqlPatient);
+                pstmtPatient.setInt(1, idUser);
+                pstmtPatient.setString(2,
+                        date_Derniere_Consultation != null
+                                ? date_Derniere_Consultation.toString()
+                                : null);
+                pstmtPatient.executeUpdate();
+            }
+
+            // --- SAUVEGARDE DU DOSSIER MÉDICAL ---
+            if (dossierMedical != null) {
+                dossierMedical.save(conn, idUser);  
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
+            e.printStackTrace();
+            return false;
+
+        } finally {
+            try { if (pstmtUser != null) pstmtUser.close(); } catch (Exception ignored) {}
+            try { if (pstmtPatient != null) pstmtPatient.close(); } catch (Exception ignored) {}
+            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
+        }
+    }
+
 }

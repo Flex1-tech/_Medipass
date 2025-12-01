@@ -1,3 +1,6 @@
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -15,7 +18,6 @@ public class Consultation {
     private boolean estPassee;
     private boolean aEteFaite;
     private Disponibilite creneau;
-
 
     private Double poids;
 
@@ -39,7 +41,15 @@ public class Consultation {
         mettreAJourEtat();
     }
 
-
+    public Consultation(int idConsultation, String service, LocalDate prevuPour,Patient patient,Professionnel_de_Sante pro, Disponibilite creneau) {
+        this.idConsultation = idConsultation;
+        this.datePrevue = prevuPour;
+        this.service = service;
+        this.patient = patient;
+        this.professionnelDeSante = pro;
+        this.creneau = creneau;
+        mettreAJourEtat();
+    }
 
     public void marquerCommeFaite(String diagnostic) {
         this.aEteFaite = true;
@@ -60,17 +70,20 @@ public class Consultation {
     }
 
     public void ajouterPrescription(Prescription p) {
-        if (p == null) return;
+        if (p == null)
+            return;
         prescriptions.add(p);
     }
 
     public void ajouterResultat(ResultatAnalyse r) {
-        if (r == null) return;
+        if (r == null)
+            return;
         resultats.add(r);
     }
 
     public void ajouterObservation(String observation) {
-        if (observation == null || observation.isEmpty()) return;
+        if (observation == null || observation.isEmpty())
+            return;
         observations.add(observation);
     }
 
@@ -136,7 +149,8 @@ public class Consultation {
 
     public void setDiagnostic(String diagnostic) {
         if (!aEteFaite) {
-            throw new IllegalStateException("Impossible de définir un diagnostic avant la réalisation de la consultation.");
+            throw new IllegalStateException(
+                    "Impossible de définir un diagnostic avant la réalisation de la consultation.");
         }
         this.diagnostic = diagnostic;
     }
@@ -152,8 +166,6 @@ public class Consultation {
     public List<String> getObservations() {
         return List.copyOf(observations);
     }
-
-
 
     public void AfficherObservations() {
         if (observations.isEmpty()) {
@@ -229,12 +241,10 @@ public class Consultation {
             return false;
         }
     }
+
     public void supprimerTousLesResultats() {
         resultats.clear();
     }
-
-
-
 
     public void afficherPrescriptions() {
         if (prescriptions.isEmpty()) {
@@ -244,9 +254,9 @@ public class Consultation {
 
         System.out.println("Prescriptions :");
         for (int i = 0; i < prescriptions.size(); i++) {
-            System.out.println(i + " : " + prescriptions.get(i)+ "\n");
+            System.out.println(i + " : " + prescriptions.get(i) + "\n");
         }
-        
+
     }
 
     public boolean supprimerPrescription(int index) {
@@ -277,25 +287,24 @@ public class Consultation {
         prescriptions.clear();
     }
 
-
-
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         String dateFormatee = (datePrevue != null) ? datePrevue.format(formatter) : "N/A";
         String nomPatient = (patient != null && patient.getNom() != null) ? patient.getNom() : "N/A";
-        String nomPro = (professionnelDeSante != null && professionnelDeSante.getNom() != null) ? professionnelDeSante.getNom(): "N/A";
+        String nomPro = (professionnelDeSante != null && professionnelDeSante.getNom() != null)
+                ? professionnelDeSante.getNom()
+                : "N/A";
         String diag = (diagnostic != null) ? diagnostic : "";
         String poidsStr = (poids != null) ? String.format("%.2f", poids) + " kg" : "N/A";
-
-
 
         StringBuilder sb = new StringBuilder();
         sb.append("Consultation {\n");
         sb.append("  id               : ").append(idConsultation).append("\n");
         sb.append("  date prévue      : ").append(dateFormatee).append("\n");
-        sb.append("  créneau          : ").append(creneau.getHeureDebut()).append(" à ").append(creneau.getHeureFin()).append("\n");
+        sb.append("  créneau          : ").append(creneau.getHeureDebut()).append(" à ").append(creneau.getHeureFin())
+                .append("\n");
         sb.append("  service          : '").append(service != null ? service : "").append("'\n");
         sb.append("  patient          : '").append(nomPatient).append("'\n");
         sb.append("  professionnel    : '").append(nomPro).append("'\n");
@@ -303,7 +312,7 @@ public class Consultation {
         sb.append("  a été faite      : ").append(aEteFaite).append("\n");
         sb.append("  poids            : ").append(poidsStr).append("\n");
         sb.append("  diagnostic       : '").append(diag).append("'\n");
-        
+
         sb.append("  Observations :\n");
         observations.forEach(o -> sb.append("    - ").append(o).append("\n"));
 
@@ -315,6 +324,104 @@ public class Consultation {
         sb.append("}");
 
         return sb.toString();
+    }
+
+    public void save(Connection conn, int idUser) {
+        try {
+
+            // Vérifier si la consultation existe déjà
+
+            boolean existe = false;
+
+            String sqlCheck = "SELECT idConsultation FROM Consultations WHERE idConsultation = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlCheck)) {
+                pstmt.setInt(1, this.idConsultation);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next())
+                        existe = true;
+                }
+            }
+
+            // INSERT OU UPDATE dans Consultations
+
+            if (!existe) {
+                // INSERT
+                String sqlInsert = "INSERT INTO Consultations(idConsultation, idPatient, idPro, datePrevue, service, diagnostic, poids, idDispo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
+                    pstmt.setInt(1, this.idConsultation);
+                    pstmt.setInt(2, idUser);
+                    pstmt.setInt(3, this.professionnelDeSante.getIdUser());
+                    pstmt.setString(4, this.datePrevue.toString());
+                    pstmt.setString(5, this.service);
+                    pstmt.setString(6, this.diagnostic);
+                    pstmt.setObject(7, this.poids);
+                    pstmt.setObject(8, this.creneau != null ? this.creneau.getIdDispo() : null);
+                    pstmt.executeUpdate();
+                }
+
+            } else {
+                // UPDATE
+                String sqlUpdate = "UPDATE Consultations SET idPatient=?, idPro=?, datePrevue=?, service=?, diagnostic=?, poids=?, idDispo=? WHERE idConsultation=?";
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlUpdate)) {
+                    pstmt.setInt(1, idUser);
+                    pstmt.setInt(2, this.professionnelDeSante.getIdUser());
+                    pstmt.setString(3, this.datePrevue.toString());
+                    pstmt.setString(4, this.service);
+                    pstmt.setString(5, this.diagnostic);
+                    pstmt.setObject(6, this.poids);
+                    pstmt.setObject(7, this.creneau != null ? this.creneau.getIdDispo() : null);
+                    pstmt.setInt(8, this.idConsultation);
+                    pstmt.executeUpdate();
+                }
+            }
+
+            // Observations : delete + réinsertion
+
+            try (PreparedStatement del = conn.prepareStatement("DELETE FROM Observations WHERE idConsultation=?")) {
+                del.setInt(1, this.idConsultation);
+                del.executeUpdate();
+            }
+
+            String sqlInsertObs = "INSERT INTO Observations(idConsultation, texte) VALUES (?, ?)";
+            try (PreparedStatement ins = conn.prepareStatement(sqlInsertObs)) {
+                for (String obs : observations) {
+                    ins.setInt(1, this.idConsultation);
+                    ins.setString(2, obs);
+                    ins.executeUpdate();
+                }
+            }
+
+            // Sauvegarder les prescriptions via leur propre méthode
+
+            try (PreparedStatement del = conn.prepareStatement("DELETE FROM Prescriptions WHERE idConsultation=?")) {
+                del.setInt(1, this.idConsultation);
+                del.executeUpdate();
+            }
+
+            if (prescriptions != null) {
+                for (Prescription p : prescriptions) {
+                p.save(conn, this.idConsultation);
+            }
+            }
+
+            // 5) Sauvegarder les résultats d’analyse via leur propre méthode
+
+            try (PreparedStatement del = conn.prepareStatement("DELETE FROM ResultatsAnalyse WHERE idConsultation=?")) {
+                del.setInt(1, this.idConsultation);
+                del.executeUpdate();
+            }
+
+            if (resultats != null) {
+                for (ResultatAnalyse r : resultats) {
+                r.save(conn, this.idConsultation);
+            }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
