@@ -28,34 +28,35 @@ public class Administrateur extends User{
 	public void creerUtilisateur() {
 		Scanner scanner=new Scanner(System.in);
 		
-		System.out.print("Entrez le nom de l'utilisateur: ");
-		String nomUser=scanner.nextLine();
+		System.out.print("\nEntrez le nom de l'utilisateur: ");
+		String nomUser=scanner.nextLine().trim();
 		
 		System.out.print("Entrez son/ses prénom(s): ");
-		String prenomUser=scanner.nextLine();
+		String prenomUser=scanner.nextLine().trim();
 		
 		System.out.print("Entrez son numéro de téléphone: ");
-		String telUser=scanner.nextLine();
+		String telUser=scanner.nextLine().trim();
 		
 		System.out.print("Entrez son adresse: ");
-		String adressUser=scanner.nextLine();
+		String adressUser=scanner.nextLine().trim();
 		
 		System.out.print("Entrez son mot de passe: ");
-		String passwordUser=scanner.nextLine();
+		String passwordUser=scanner.nextLine().trim();
 		String hashedPassword=BCrypt.hashpw(passwordUser,BCrypt.gensalt());
 		
-		String table=null;
-		String insertSql=null;
+		String typeUser=null;
 		String role=null;
+		String titre=null;
 		boolean estProSante=false;
+		
 		while(true) {
-			System.out.println("1 pour création de compte administrateur\n"
+			System.out.println("\n1 pour création de compte administrateur\n"
 					+"2 pour création de compte patient\n"
 					+"3 pour création de compte de professionnel de santé\n");
 			System.out.print("Choix: ");
 			
 			if(!scanner.hasNextInt()) {
-				System.out.println("Vous devez entrer un nombre entre 1, 2 ou 3");
+				System.out.println("Vous devez entrer un nombre entre 1 , 2 ou 3");
 				scanner.nextLine();
 				continue;
 			}
@@ -64,92 +65,135 @@ public class Administrateur extends User{
 			scanner.nextLine();
 			
 			switch(choix) {
-		         case 1: table="Administrateurs";
-		                 insertSql="INSERT INTO Administrateurs(nom,prenom,telephone,adresse,motDePasse) VALUES (?,?,?,?,?)";
-		                 role="administrateur";
-			             break;
-			        
-		         case 2: table="Patients";
-		                 insertSql="INSERT INTO Patients(nom,prenom,telephone,adresse,motDePasse) VALUES(?,?,?,?,?)";
-		                 role="patient";
-			             break;
-			        
-		         case 3: table="ProfessionnelSante";
-		                 insertSql="INSERT INTO ProfessionnelSante(nom,prenom,telephone,adresse,motDePasse,categorie) VALUES(?,?,?,?,?,?)";
-			             estProSante=true;
-			             role="professionnel de santé";
-		                 break;
-		            
-		         default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
-		                  continue;
-		    }
-		
-			break;
+            case 1: typeUser="admin"; 
+                    role="administrateur";
+                    break;
+                    
+            case 2: typeUser="patient"; 
+                    role="patient";
+                    break;
+                    
+            case 3: typeUser="pro";
+                    estProSante=true;
+                    role="professionnel de santé";
+                    System.out.print("\nEntrez la catégorie du professionnel de santé: ");
+                    titre = scanner.nextLine().trim();
+                    break;
+                    
+            default: System.out.println("Choix invalide"); 
+                     continue;
+        }
 			
-		}
-		
-	   String checkSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=? AND telephone=?";
-		
-		try(Connection conn=DriverManager.getConnection(url);
-			PreparedStatement checkStmt=conn.prepareStatement(checkSql)){
-			checkStmt.setString(1, nomUser);
-			checkStmt.setString(2, prenomUser);
-			checkStmt.setString(3, telUser);
-			
-			try(ResultSet rs=checkStmt.executeQuery()){
-				if(rs.next() && rs.getInt(1)>0) {
-					System.out.println("L'utilisateur "+nomUser+" "+prenomUser+" existe déja.");
-					return;
-				}
-			}//Vérifier unicité du compte
-			
-			try(PreparedStatement stmt=conn.prepareStatement(insertSql)){
-						stmt.setString(1,nomUser);
-						stmt.setString(2,prenomUser);
-						stmt.setString(3,telUser);
-						stmt.setString(4,adressUser);
-						stmt.setString(5,hashedPassword);
-						
-						if(estProSante) {
-							System.out.print("Entrez la catégorie du professionnel de santé: ");
-							String categorie=scanner.nextLine();
-							stmt.setString(6, categorie);
-						}
-						
-						int rows=stmt.executeUpdate();
-						if(rows>0) {
-							System.out.println(nomUser+" a été créé avec succès en tant que "+role);
-						}
-			 }
-			
-		}
-			
-			catch(SQLException e) {
-				System.out.println("Une erreur s'est produite lors de la création de l'utilisateur");
-			}
+        break;
+        
+        }
+
+        String checkSql="SELECT COUNT(*) FROM Users WHERE nom=? AND prenom=?";
+        String checkTelSql="SELECT COUNT(*) FROM Users WHERE telephone=? AND (nom<>? OR prenom<>?)";
+        String insertSql="INSERT INTO Users(nom, prenom, telephone, adresse, motDePasse, typeUser) VALUES(?,?,?,?,?,?)";
+
+        try(Connection conn=DriverManager.getConnection(url);
+             PreparedStatement checkStmt=conn.prepareStatement(checkSql)) {
+
+               checkStmt.setString(1, nomUser);
+               checkStmt.setString(2, prenomUser);
+
+               try(ResultSet rs=checkStmt.executeQuery()) {
+                       if(rs.next() && rs.getInt(1) > 0) {
+                              System.out.println("\nL'utilisateur " + nomUser + " " + prenomUser + " existe déjà.");
+                              return;
+                        }
+                }
+               
+               try(PreparedStatement stmt=conn.prepareStatement(checkTelSql)) {
+                   stmt.setString(1, telUser);
+                   stmt.setString(2, nomUser);
+                   stmt.setString(3, prenomUser);
+                   try (ResultSet rs=stmt.executeQuery()) {
+                       if (rs.next() && rs.getInt(1) > 0) {
+                           System.out.println("\nAttention : ce numéro de téléphone est déjà utilisé par un autre utilisateur.");
+                           return;
+                       }
+                   }
+               }//Vérifier unicité
+
+
+               int userId=-1;
+               try(PreparedStatement stmt=conn.prepareStatement(insertSql)) {
+                      stmt.setString(1, nomUser);
+                      stmt.setString(2, prenomUser);
+                      stmt.setString(3, telUser);
+                      stmt.setString(4, adressUser);
+                      stmt.setString(5, hashedPassword);
+                      stmt.setString(6, typeUser);
+                      
+                      stmt.executeUpdate();
+
+                      try (ResultSet keys=stmt.getGeneratedKeys()) {
+                          if (keys.next()) {
+                              userId=keys.getInt(1);
+                          }
+                      }
+                  
+               }
+               
+               if(userId!=-1) {
+                   if(estProSante) {
+                       try (PreparedStatement stmt=conn.prepareStatement(
+                               "INSERT INTO ProfessionnelSante(user_id, titre) VALUES(?, ?)")) {
+                           stmt.setInt(1, userId);
+                           stmt.setString(2, titre);
+                           stmt.executeUpdate();
+                       }
+                   } 
+                   
+                   else if("admin".equals(typeUser)) {
+                       try (PreparedStatement stmt=conn.prepareStatement(
+                               "INSERT INTO Administrateurs(user_id) VALUES(?)")) {
+                           stmt.setInt(1, userId);
+                           stmt.executeUpdate();
+                       }
+                   } 
+                   
+                   else if("patient".equals(typeUser)) {
+                       try (PreparedStatement stmt=conn.prepareStatement(
+                               "INSERT INTO Patients(user_id) VALUES(?)")) {
+                           stmt.setInt(1, userId);
+                           stmt.executeUpdate();
+                       }
+                   }
+                   
+                   System.out.println("\n"+nomUser+" " +prenomUser+" a été créé avec succès en tant que "+role);
+               }
+
+        } 
+      
+        catch (SQLException e) {
+             e.printStackTrace();
+        }
+
     }
 	
 	public void modifierInfosUtilisateur() {
 		Scanner scanner=new Scanner(System.in);
 		
-		System.out.print("Entrez le nom actuel de l'utilisateur à modifier: ");
-		String nomUser=scanner.nextLine();
+		System.out.print("\nEntrez le nom actuel de l'utilisateur à modifier: ");
+		String nomUser=scanner.nextLine().trim();
 		
 		System.out.print("Entrez son/ses prénom(s) actuel: ");
-		String prenomUser=scanner.nextLine();
+		String prenomUser=scanner.nextLine().trim();
 		
-		String table=null;
-		String updateSql=null;
+		String typeUser=null;
 		boolean estProSante=false;
 		
 		while(true) {
-			System.out.println("1 pour modifier compte administrateur\n"
+			System.out.println("\n1 pour modifier compte administrateur\n"
 					+ "2 pour modifier compte patient\n"
 					+ "3 pour modifier compte professionnel de santé\n");
 			System.out.print("Choix: ");
 			
 			if(!scanner.hasNextInt()) {
-				System.out.println("Vous devez entrer un nombre entre 1, 2 ou 3");
+				System.out.println("Vous devez entrer un nombre entre 1 , 2 ou 3");
 				scanner.nextLine();
 				continue;
 			}
@@ -158,13 +202,14 @@ public class Administrateur extends User{
 			scanner.nextLine();
 			
 			switch(choix){
-		    case 1: table="Administrateurs";
+		    case 1: typeUser="admin";
 			        break;
 			        
-		    case 2: table="Patients";
+		    case 2: typeUser="patient";
 			        break;
 			        
-		    case 3: table="ProfessionnelSante";
+		    case 3: typeUser="pro";
+		            estProSante=true;
 		            break;
 		            
 		    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
@@ -174,111 +219,130 @@ public class Administrateur extends User{
 		    break;
 		    
 		}
-			
-			
 		
-		String checkExistSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=?";
+		String checkExistSql="SELECT idUser FROM Users WHERE nom=? AND prenom=? AND typeUser=?";
 		
 		try(Connection conn=DriverManager.getConnection(url);
 				PreparedStatement checkExistStmt=conn.prepareStatement(checkExistSql)){
 			checkExistStmt.setString(1, nomUser);
 			checkExistStmt.setString(2, prenomUser);
+			checkExistStmt.setString(3, typeUser);
 			
+			Integer userId=null;
 			try(ResultSet rs=checkExistStmt.executeQuery()){
-				if(rs.next() || rs.getInt(1)==0) {
-					System.out.println("Aucun utilisateur trouvé avec ces nom et prénom(s).");
+				if(rs.next()) {
+					userId=rs.getInt("idUser");
+				}
+				else {
+					System.out.println("\nAucun utilisateur trouvé avec ces nom et prénom(s).");
 					return;
 				}
 			}//Vérifier que l'utilisateur existe
 			
 			System.out.print("Nouveau nom: ");
-			String newNomUser=scanner.nextLine();
+			String newNomUser=scanner.nextLine().trim();
 			
-			System.out.println("Nouveau prénom: ");
-			String newPrenomUser=scanner.nextLine();
+			System.out.print("Nouveau prénom(s): ");
+			String newPrenomUser=scanner.nextLine().trim();
 			
 			System.out.print("Nouvelle adresse: ");
-			String newAdressUser=scanner.nextLine();
+			String newAdressUser=scanner.nextLine().trim();
 			
 			System.out.print("Nouveau numéro de téléphone: ");
-			String newTelUser=scanner.nextLine();
+			String newTelUser=scanner.nextLine().trim();
 			
 			System.out.print("Nouveau mot de passe: ");
-			String newPasswordUser=scanner.nextLine();
+			String newPasswordUser=scanner.nextLine().trim();
 			String hashedPassword=BCrypt.hashpw(newPasswordUser,BCrypt.gensalt());
 			
+			String checkFullSql="SELECT COUNT(*) FROM Users WHERE nom=? AND prenom=? AND telephone=? AND idUser<>?";
+			try(PreparedStatement stmt=conn.prepareStatement(checkFullSql)){
+				stmt.setString(1, newNomUser);
+				stmt.setString(2, newPrenomUser);
+				stmt.setString(3, newTelUser);
+				stmt.setInt(4, userId);
+				try(ResultSet rs=stmt.executeQuery()) {
+                    if(rs.next() && rs.getInt(1) > 0) {
+                           System.out.println("\nL'utilisateur " + nomUser + " " + prenomUser + " existe déjà.");
+                           return;
+                     }
+                 }
+			}
 			
-			String checkUniqueSql = "SELECT COUNT(*) FROM " + table + " WHERE nom=? AND prenom=? AND telephone=?";
-	        try (PreparedStatement checkUniqueStmt = conn.prepareStatement(checkUniqueSql)) {
-	            checkUniqueStmt.setString(1, newNomUser);
-	            checkUniqueStmt.setString(2, newPrenomUser);
-	            checkUniqueStmt.setString(3, newTelUser);
-	            try (ResultSet rs = checkUniqueStmt.executeQuery()) {
-	                if (rs.next() && rs.getInt(1) > 0) {
-	                    System.out.println("Erreur : un utilisateur avec ce nom, prénom et numéro de téléphone existe déja.");
-	                    return;
-	                }
-	            }
-	        }//Vérifier unicité 
-
-
-			try(PreparedStatement stmt=conn.prepareStatement(updateSql)){
+			String checkTelSql="SELECT COUNT(*) FROM Users WHERE telephone=? AND idUser<>?";
+			try(PreparedStatement stmt=conn.prepareStatement(checkTelSql)) {
+                stmt.setString(1, newTelUser);
+                stmt.setInt(2, userId);
+                try (ResultSet rs=stmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        System.out.println("\nAttention : ce numéro de téléphone est déjà utilisé par un autre utilisateur.");
+                        return;
+                    }
+                }
+            }//Vérifier unicité
+			
+			String updateUserSql="UPDATE Users SET nom=?, prenom=?, adresse=?, telephone=?, motDePasse=? WHERE nom=? AND prenom=?";
+			try(PreparedStatement stmt=conn.prepareStatement(updateUserSql)){
 				stmt.setString(1, newNomUser);
 	            stmt.setString(2, newPrenomUser);
 	            stmt.setString(3, newAdressUser);
 	            stmt.setString(4, newTelUser);
 	            stmt.setString(5, hashedPassword);
+	            stmt.setString(6, nomUser);
+	            stmt.setString(7, prenomUser);
 	            
-	            if(estProSante){
-	            	System.out.print("Nouvelle catégorie: ");
-	            	String newCategorie=scanner.nextLine();
-	            	stmt.setString(6, newCategorie);
-	            	stmt.setString(7, nomUser);
-	            	stmt.setString(8, prenomUser);
-	            }
+	            int rows=stmt.executeUpdate();
 	            
-	            else{
-	            	stmt.setString(6, nomUser);
-	            	stmt.setString(7, prenomUser);
+	            if(rows>0) {
+	            	if(estProSante) {
+	            		System.out.print("\nNouvelle catégorie: ");
+		            	String newCategorie=scanner.nextLine().trim();
+		            	
+		            	String updateProSql="UPDATE ProfessionnelSante SET titre=? WHERE user_id=?";
+		            	try(PreparedStatement stmtPro=conn.prepareStatement(updateProSql)){
+		            		stmtPro.setString(1, newCategorie);
+		            		stmtPro.setInt(2, userId);
+		            		int rowsPro=stmtPro.executeUpdate();
+		            	}
+	            	}
+	            	System.out.println("\nInformations mises à jour avec succès.");
 	            }
-
-	            int rows = stmt.executeUpdate();
-	            if (rows > 0) {
-	                System.out.println("Informations mises à jour avec succès !");
+	            else {
+	            	System.out.println("\nUne erreur s'est produite lors de la mise à jour des informations.");
 	            }
-	        }
+			}
 			
 		}
-
-	        catch (SQLException e) {
-	        	
-	        	if(e.getSQLState()!= null && e.getSQLState().startsWith("08")) {
-	        		System.out.println("Erreur: impossible de se connecter à la base de données.");
-	        	}
-	        	else {
-	        		System.out.println("Une erreur SQL est survenue: "+e.getMessage());
-	        	}
-	            e.printStackTrace();
-	        }
-			
-	 }
+		
+		catch(SQLException e) {
+			if(e.getSQLState()!= null && e.getSQLState().startsWith("08")) {
+        		System.out.println("Erreur: impossible de se connecter à la base de données.");
+        	}
+        	else {
+        		System.out.println("Une erreur SQL est survenue: "+e.getMessage());
+        	}
+            e.printStackTrace();
+		}
+		
+    }
 		
 	
 	
     public void supprimerUtilisateur() {
 		Scanner scanner=new Scanner(System.in);
 		
-		System.out.print("Entrez le nom de l'utilisateur à supprimer: ");
-		String nomUser=scanner.nextLine();
+		System.out.print("\nEntrez le nom de l'utilisateur à supprimer: ");
+		String nomUser=scanner.nextLine().trim();
 		
 		System.out.print("Entrez son/ses prénoms(s): ");
-		String prenomUser=scanner.nextLine();
+		String prenomUser=scanner.nextLine().trim();
 		
 		String table=null;
 		String role=null;
+		String typeUser=null;
 		
 		while(true) {
-			System.out.println("1 pour suppression de compte administrateur\n"
+			System.out.println("\n1 pour suppression de compte administrateur\n"
 					+ "2 pour suppression de compte patient\n"
 					+ "3 pour suppression de compte de professionnel de santé\n");
 			System.out.print("Choix: ");
@@ -294,18 +358,21 @@ public class Administrateur extends User{
 			
 			switch(choix){
 			    case 1: table="Administrateurs";
+			            typeUser="admin";
 				        role="administrateur";
 				        break;
 				        
 			    case 2: table="Patients";
+			            typeUser="patient";
 				        role="patient";
 				        break;
 				        
 			    case 3: table="ProfessionnelSante";
+			            typeUser="pro";
 			            role="professionnel de santé";
 			            break;
 			            
-			    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
+			    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1 , 2 ou 3");
 			             continue;
 			}
 			
@@ -315,29 +382,42 @@ public class Administrateur extends User{
 		
 		
 		
-		String checkSql="SELECT COUNT(*) FROM "+table+" WHERE nom=? AND prenom=?";
-		String deleteSql="DELETE FROM "+table+" WHERE nom=? AND prenom=?";
+		String checkSql="SELECT idUser FROM Users WHERE nom=? AND prenom=? AND typeUser=?";
 		
 		try(Connection conn=DriverManager.getConnection(url);
 				PreparedStatement checkStmt=conn.prepareStatement(checkSql)){
 			
 			checkStmt.setString(1, nomUser);
 			checkStmt.setString(2, prenomUser);
+			checkStmt.setString(3, typeUser);
 			
+			Integer userId=null;
 			try(ResultSet rs=checkStmt.executeQuery()){
-				if(!rs.next() || rs.getInt(1)==0) {
-					System.out.print("Aucun utilisateur trouvé avec ces nom et prénom(s).");
+				if(rs.next()) {
+					userId=rs.getInt("idUser");
+				}
+				else {
+					System.out.println("\nAucun utilisateur trouvé avec ces nom et prénom(s).");
 					return;
 				}
-			}//vérifier l'existence de l'utilisateur
+			}//Vérifier que l'utilisateur existe
 			
-			try(PreparedStatement stmt=conn.prepareStatement(deleteSql)){
-				stmt.setString(1, nomUser);
-				stmt.setString(2, prenomUser);
-				
-				int rows=stmt.executeUpdate();
+			String deleteRoleSql="DELETE FROM "+table+" WHERE user_id=?";
+			
+			try(PreparedStatement stmtRole=conn.prepareStatement(deleteRoleSql)){
+				stmtRole.setInt(1, userId);
+				stmtRole.executeUpdate();
+			}
+			
+			String deleteUserSql="DELETE FROM Users WHERE idUser=?";
+			try(PreparedStatement stmtUser=conn.prepareStatement(deleteUserSql)){
+				stmtUser.setInt(1, userId);
+				int rows=stmtUser.executeUpdate();
 				if(rows>0) {
-					System.out.println(nomUser+" "+prenomUser+" a été supprimé en tant que "+role+" avec succès.");
+					System.out.println("\n"+nomUser+" "+prenomUser+" a été supprimé en tant que "+role+" avec succès.");
+				}
+				else {
+					System.out.println("\nUne erreur s'est produite lors de la suppression.");
 				}
 			}
 				
@@ -355,7 +435,7 @@ public class Administrateur extends User{
     	String sqlPatients= "SELECT COUNT(*) AS total FROM Patients";
     	String sqlProSante="SELECT COUNT(*) AS total FROM ProfessionnelSante";
     	String sqlAdmins="SELECT COUNT(*) AS total FROM Administrateurs";
-    	String sqlCategories="SELECT categorie, COUNT(*) AS total FROM ProfessionnelSante GROUP BY categorie";
+    	String sqlCategories="SELECT titre AS categorie, COUNT(*) AS total FROM ProfessionnelSante GROUP BY titre";
     	
     	try(Connection conn=DriverManager.getConnection(url)){
     		
@@ -364,7 +444,7 @@ public class Administrateur extends User{
     				ResultSet rs=stmt.executeQuery()){
     			
     			if(rs.next()) {
-    				System.out.println("Nombre total de patients: "+rs.getInt("total"));
+    				System.out.println("\nNombre total de patients: "+rs.getInt("total"));
     			}
     		}
     		
