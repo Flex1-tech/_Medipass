@@ -270,9 +270,10 @@ public boolean supprimer_Disponibilite(Connection conn, Disponibilite dispo) thr
     for (Consultation c : aVenir) {
         System.out.println(
             "Consultation #" + c.getIdConsultation() +
-            " | Patient : " + c.getPatient().getNom() + " " + c.getPatient().getPrenom() +
-            " | Date : " + c.getDatePrevue() +
-            " | Service : " + c.getService()
+            "\n | Patient : " + c.getPatient().getNom() + " " + c.getPatient().getPrenom() +
+            " (ID : " + c.getPatient().getIdUser() + ")" +
+            "\n | Date : " + c.getDatePrevue() +
+            "\n | Service : " + c.getService()
         );
         System.out.println("---------------------------");
     }

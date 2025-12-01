@@ -55,35 +55,56 @@ public class Interface {
    
     public static void start() {
         int choix = accueil();
-        switch (choix) {
-            case 1: // Patient
-            case 2: // Professionnel de santé
-            case 3: // Administrateur
-                User user = connexion();
-                if (user != null) {
-                    if (user instanceof Patient) {
+        User user = connexion();
+        if (user != null){
+            switch (choix) {
+                case 1: // Patient
+                    if (user instanceof Patient){
                         menuPatient((Patient) user);
-                    } else if (user instanceof Professionnel_de_Sante) {
-                        menuPro((Professionnel_de_Sante) user);
+                    }else{
+                        System.out.println("Erreur : vous n'êtes pas un patient !");
                     }
-                    else if (user instanceof GestionnaireDePatient) {
+                    break;
+                case 2: // Professionnel de santé
+                    if (user instanceof Professionnel_de_Sante){
+                        boolean retourAccueil = menuPro((Professionnel_de_Sante) user);
+                        if (retourAccueil) {
+                            start();
+                            return;
+                        }
+                    }else {
+                        System.out.println("Erreur : vous n'êtes pas un professionnel de Santé !");
+                    }
+                    break;
+                case 3:
+                    if (user instanceof GestionnaireDePatient){
                         menuGestionnaire((GestionnaireDePatient) user);
-                    } else if (user instanceof Administrateur) {
-                        menuAdministrateur((Administrateur) user);
+                    }else{
+                        System.out.println("Erreur : vous n'êtes pas un gestionnaire de patient !");
                     }
-                } else {
+                    break;
+                case 4: // Administrateur
+
+                    if (user instanceof Administrateur) {
+                        menuAdministrateur((Administrateur) user);
+                    }else {
+                        System.err.println("Erreur : vous n'êtes pas un Administrateur !");
+                    }
+                    break;
+                    case 5:
+                        System.out.println("Merci d'avoir utilisé Medipass. Au revoir !");
+                        System.exit(0);
+                        break;
+                        default:
+                            System.out.println("Choix invalide.");
+                            start();
+                        }
+                        
+                }else {
                     System.out.println("Connexion échouée. Retour à l'accueil...");
-                    start(); // relancer l'accueil
+                    start();
+                    return; 
                 }
-                break;
-            case 4:
-                System.out.println("Merci d'avoir utilisé Medipass. Au revoir !");
-                System.exit(0);
-                break;
-            default:
-                System.out.println("Choix invalide.");
-                start();
-        }
     }
 
 
@@ -92,17 +113,18 @@ public class Interface {
         // options: voir dossier, rendez-vous, etc.
     }
 
-    private static void menuPro(Professionnel_de_Sante pro) {
+    private static boolean menuPro(Professionnel_de_Sante pro) {
         Scanner scanner = new Scanner(System.in);
-        boolean quitterMenu = false;
 
         System.out.println("=== Menu Professionnel de Santé ===\n");
         System.out.println("Bienvenue, " + pro.getNom() + " " + pro.getPrenom() + "!\n");
 
-        while (!quitterMenu) {
+        while (true) {
             System.out.println("Veuillez choisir votre action : ");
             System.out.println("1. Voir les consultations prévues");
             System.out.println("2. Gérer les disponibilités");
+            // System.out.println(" Afficher un dossier médical");
+            // System.out.println(" Finaliser une consultation");
             System.out.println("3. Déconnexion");
             System.out.print("Votre choix : ");
 
@@ -241,12 +263,12 @@ public class Interface {
 
                 case "3":
                     System.out.println("Déconnexion réussie. Retour à l'accueil...");
-                    quitterMenu = true;
-                    break;
+                    return true;
 
                 default:
                     System.out.println("Choix invalide, veuillez réessayer.");
             }
+            return false;
         }
     }
 
