@@ -35,22 +35,29 @@ public class Interface {
     public static User connexion() {
         Scanner scanner = new Scanner(System.in);
         Console console = System.console();
+        String motDePasse;
 
         System.out.print("Entrez votre numéro de téléphone : ");
         String telephone = scanner.nextLine();
-        
+
         System.out.print("Entrez votre mot de passe : ");
-        String motDePasse = new String(console.readPassword());
+
+        if (console != null) {
+            motDePasse = new String(console.readPassword());
+        } else {
+            motDePasse = scanner.nextLine();
+        }
 
         User userConnecte = User.seConnecter(telephone, motDePasse);
+
         if (userConnecte != null) {
             System.out.println("Connexion réussie !");
         } else {
             System.out.println("Échec de la connexion !");
         }
+
         return userConnecte;
     }
-       
 
    
     public static void start() {
@@ -127,6 +134,14 @@ public class Interface {
             // System.out.println(" Finaliser une consultation");
             System.out.println("3. Déconnexion");
             System.out.print("Votre choix : ");
+
+        // System.out.println("Veuillez choisir votre action : ");
+        // System.out.println("1. Voir les consultations prévues");
+        // System.out.println("2. Gérer les disponibilités");
+        // System.out.println("3. Gérer / éditer une consultation");
+        // System.out.println("4. Afficher un dossier médical");
+        // System.out.println("5. Déconnexion");
+        // System.out.print("Votre choix : ");
 
             String input = scanner.nextLine().trim();
             switch (input) {
@@ -279,10 +294,7 @@ public class Interface {
         
         if (sc.nextLine().equalsIgnoreCase("O")) {
             Console console = System.console();
-            if (console == null) {
-                System.out.println("Console non disponible. Impossible de sécuriser la saisie du mot de passe.");
-                return;
-            }
+            Scanner scanner = new Scanner(System.in);
 
             System.out.println("=== Création d'un nouveau patient ===");
             System.out.println("Nb : La création d'un patient crée aussi un dossier médical vierge.\n");
@@ -297,13 +309,18 @@ public class Interface {
             String telephone = sc.nextLine();
 
             String motDePasse;
+            String confirmation;
             while (true) {
                 System.out.print("Entrez le mot de passe : ");
-                motDePasse = new String(console.readPassword());
-
-                System.out.print("Confirmez le mot de passe : ");
-                String confirmation = new String(console.readPassword());
-
+                if (console != null) {       
+                    motDePasse = new String(console.readPassword());
+                    System.out.print("Confirmez le mot de passe : ");
+                    confirmation = new String(console.readPassword());
+                }else{
+                    motDePasse = scanner.nextLine();
+                    System.out.print("Confirmez le mot de passe : ");
+                    confirmation = scanner.nextLine();
+                }
                 if (motDePasse.equals(confirmation)) {
                     break;
                 }
