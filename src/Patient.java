@@ -10,6 +10,9 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Patient extends User {
 
@@ -56,16 +59,16 @@ public class Patient extends User {
 
     }
 
-    public LocalDate get_Date_Dernière_Consultation() {
+    public LocalDate get_Date_Derniere_Consultation() {
         return date_Derniere_Consultation;
     }
 
-    public void set_Date_Dernière_Consultation(String date) {
+    public void set_Date_Derniere_Consultation(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         this.date_Derniere_Consultation = LocalDate.parse(date, formatter);
     }
 
-    public String afficher_Date_Dernière_Consultation() {
+    public String afficher_Date_Derniere_Consultation() {
         if (date_Derniere_Consultation == null) {
             return "Aucune consultation enregistrée.";
         }
@@ -173,6 +176,44 @@ public class Patient extends User {
 
             try {
                 LocalDate date = LocalDate.parse(entree, formatter);
+                if (date.isBefore(LocalDate.now())) {
+                    System.out.println("Impossible de prendre un rendez-vous dans le passé.");
+                    return null;
+                }
+                Disponibilite.Jour jour;
+
+                switch(date.getDayOfWeek()) {
+                    case MONDAY:
+                        jour = Disponibilite.Jour.LUNDI;
+                        break;
+                    case TUESDAY:
+                        jour = Disponibilite.Jour.MARDI;
+                        break;
+                    case WEDNESDAY:
+                        jour = Disponibilite.Jour.MERCREDI;
+                        break;
+                    case THURSDAY:
+                        jour = Disponibilite.Jour.JEUDI;
+                        break;
+                    case FRIDAY:
+                        jour = Disponibilite.Jour.VENDREDI;
+                        break;
+                    case SATURDAY:
+                        jour = Disponibilite.Jour.SAMEDI;
+                        break;
+                    case SUNDAY:
+                        jour = Disponibilite.Jour.DIMANCHE;
+                        break;
+                    default:
+                        throw new IllegalStateException("Jour invalide : " + date.getDayOfWeek());
+                }
+
+                if (d.getJour() != jour) {
+                    System.out.println(" Veuillez respecter le créneau choisi");
+                    return null;
+                }
+
+
                 dateString = date.format(formatter);
                 break;
             } catch (DateTimeParseException e) {
@@ -180,10 +221,15 @@ public class Patient extends User {
             }
         }
 
+
+
         // --- CREATION CONSULTATION ---
         Consultation consultation = new Consultation(this, pro, service, dateString, d);
         // On réserve le créneau
         d.reserver();
+        d.save(null, pro.idUser);
+        consultation.save(null, this.idUser);
+
 
         // On ajoute dans le dossier médical
         this.getDossierMedical().ajouterConsultation(consultation);
@@ -200,7 +246,7 @@ public class Patient extends User {
         StringBuilder sb = new StringBuilder(128); // capacité initiale
         sb.append("Nom: ").append(nom).append(", \n");
         sb.append("Prénom: ").append(prenom).append(", \n");
-        sb.append("Date de la dernière consultation: ").append(afficher_Date_Dernière_Consultation()).append(", \n");
+        sb.append("Date de la dernière consultation: ").append(afficher_Date_Derniere_Consultation()).append(", \n");
 
         return sb.toString();
     }
@@ -324,5 +370,28 @@ public class Patient extends User {
             try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
         }
     }
+    
+    public void afficherDossierMedical(){
+        System.out.println(this.getDossierMedical());
+    }
+
+    public void exporterDossierMedicalTXT() {
+        // Créer le nom du fichier automatiquement
+        String nomFichier = "Dossier_" + this.getNom() + "_" + this.getPrenom() + ".txt";
+        
+        File fichier = new File(nomFichier);
+
+        try (FileWriter writer = new FileWriter(fichier)) {
+            writer.write("Patient : " + this.getNom() + " " + this.getPrenom() + "\n");
+            writer.write(this.getDossierMedical().toString());
+
+            System.out.println("Dossier médical exporté avec succès !");
+            System.out.println("Chemin complet : " + fichier.getAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+}
+
 
 }

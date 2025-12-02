@@ -1,5 +1,8 @@
 import java.io.Console;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 public class Interface {
@@ -127,21 +130,14 @@ public class Interface {
         System.out.println("Bienvenue, " + pro.getNom() + " " + pro.getPrenom() + "!\n");
 
         while (true) {
-            System.out.println("Veuillez choisir votre action : ");
-            System.out.println("1. Voir les consultations prévues");
-            System.out.println("2. Gérer les disponibilités");
-            // System.out.println(" Afficher un dossier médical");
-            // System.out.println(" Finaliser une consultation");
-            System.out.println("3. Déconnexion");
-            System.out.print("Votre choix : ");
 
-        // System.out.println("Veuillez choisir votre action : ");
-        // System.out.println("1. Voir les consultations prévues");
-        // System.out.println("2. Gérer les disponibilités");
-        // System.out.println("3. Gérer / éditer une consultation");
-        // System.out.println("4. Afficher un dossier médical");
-        // System.out.println("5. Déconnexion");
-        // System.out.print("Votre choix : ");
+        System.out.println("Veuillez choisir votre action : ");
+        System.out.println("1. Voir les consultations prévues");
+        System.out.println("2. Gérer les disponibilités");
+        System.out.println("3. Gérer / éditer une consultation");
+        System.out.println("4. Afficher un dossier médical");
+        System.out.println("5. Déconnexion");
+        System.out.print("Votre choix : ");
 
             String input = scanner.nextLine().trim();
             switch (input) {
@@ -275,8 +271,135 @@ public class Interface {
                         }
                     }
                     break;
-
+                
                 case "3":
+                    pro.afficherConsultationsEditables();
+                    Consultation cible = null;
+                    System.out.print("Veuillez saisir l’ID de la consultation : ");
+                    try {
+                        int id = Integer.parseInt(scanner.nextLine()); // nextLine pour éviter les problèmes de buffer
+                        for (Consultation c : pro.getConsultationsEditables()) {
+                            if (c.getIdConsultation() == id) {
+                                cible = c;
+                                break;
+                            }
+                        }
+
+                        if (cible == null) {
+                            System.out.println("Aucune consultation trouvée avec cet ID.");
+                            break;
+                        }
+
+                        // --- Diagnostic ---
+                        System.out.print("Veuillez entrer le diagnostic : ");
+                        cible.setDiagnostic(scanner.nextLine().trim());
+
+                        // --- Observations ---
+                        cible.getObservations().clear();
+                        System.out.println("Entrez les observations (tapez 'X' pour terminer) :");
+                        while (true) {
+                            String obs = scanner.nextLine().trim();
+                            if (obs.equalsIgnoreCase("X")) break;
+                            if (!obs.isEmpty()) cible.getObservations().add(obs);
+                        }
+
+                        // --- Prescriptions ---
+                        cible.getPrescriptions().clear();
+                        System.out.println("Entrez les prescriptions (tapez 'X' pour terminer) :");
+                        while (true) {
+                            System.out.print("Médicament (ou X pour terminer) : ");
+                            String medicament = scanner.nextLine().trim();
+                            if (medicament.equalsIgnoreCase("X")) break;
+
+                            System.out.print("Posologie : ");
+                            String posologie = scanner.nextLine().trim();
+
+                            System.out.print("Durée : ");
+                            String duree = scanner.nextLine().trim();
+
+                            Prescription p = new Prescription(medicament, posologie, duree);
+                            cible.getPrescriptions().add(p);
+                        }
+
+                        // --- Résultats d'analyse ---
+                        cible.getResultats().clear();
+                        System.out.println("Entrez les résultats d'analyse (tapez 'X' pour terminer) :");
+                        while (true) {
+                            System.out.print("Type d'analyse (ou X pour terminer) : ");
+                            String type = scanner.nextLine().trim();
+                            if (type.equalsIgnoreCase("X")) break;
+
+                            System.out.print("Valeur : ");
+                            String valeur = scanner.nextLine().trim();
+
+                            System.out.print("Unité (laisser vide si aucune) : ");
+                            String unite = scanner.nextLine().trim();
+                            if (unite.isEmpty()) unite = null;
+
+                            System.out.print("Interprétation : ");
+                            String interpretation = scanner.nextLine().trim();
+
+                            ResultatAnalyse r = new ResultatAnalyse(type, valeur, unite, interpretation);
+                            cible.getResultats().add(r);
+                        }
+
+                        // Marquer la consultation comme faite
+                        cible.marquerCommeFaite();
+
+                        // --- Sauvegarde en base ---
+                        Connection conn = DriverManager.getConnection(User.url);
+                        if (conn != null) {
+                            cible.save(conn, cible.getPatient().getIdUser());
+                            System.out.println("\nConsultation mise à jour et sauvegardée avec succès !");
+                        } else {
+                            System.out.println("\nConsultation mise à jour mais connexion à la base non disponible.");
+                        }
+
+                    } catch (Exception e) {
+                        System.out.println("Erreur ! Veuillez réessayer !");
+                        e.printStackTrace();
+                    }
+
+                    break;
+                case "4":
+                    List<Patient> patients = pro.getPatientsLies();
+                    if (patients.isEmpty()) {
+                        System.out.println("Aucun patient enregistré pour vos consultations.");
+                        return true;
+                    }
+
+                    System.out.println("=== Sélectionnez un patient ===");
+                    for (int i = 0; i < patients.size(); i++) {
+                        System.out.println(i + ") " + patients.get(i).getNom() + " " + patients.get(i).getPrenom());
+                    }
+
+                    int choix = -1;
+                    while (true) {
+                        System.out.print("Choisissez un patient (index) ou X pour annuler : ");
+                        String choixStr = scanner.nextLine().trim();
+
+                        if (choixStr.equalsIgnoreCase("X")) 
+                            return true;
+
+                        try {
+                            choix = Integer.parseInt(choixStr);
+
+                            if (choix >= 0 && choix < patients.size()) {
+                                break; 
+                            } else {
+                                System.out.println("Index hors limites !");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Veuillez entrer un nombre.");
+                        }
+                    }
+
+                    Patient patientChoisi = patients.get(choix);
+                    System.out.println("Vous avez sélectionné : " + patientChoisi.getNom() + " " + patientChoisi.getPrenom()+ "\n");
+                    System.out.println(patientChoisi.getDossierMedical());
+                    break;
+
+                case "5":
                     System.out.println("Déconnexion réussie. Retour à l'accueil...");
                     return true;
 
