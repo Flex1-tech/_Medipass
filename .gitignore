@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 .vscode/
 .classpath
 .project
 bin/
 *.class
 bin/
+=======
+.vscode/.DS_Store
+>>>>>>> 9c9692b (Ignore .DS_Store)
