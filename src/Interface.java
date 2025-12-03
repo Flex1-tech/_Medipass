@@ -4,7 +4,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
-import java.util.List;
 
 public class Interface {
     public static int accueil(){
@@ -71,7 +70,11 @@ public class Interface {
             switch (choix) {
                 case 1: // Patient
                     if (user instanceof Patient){
-                        menuPatient((Patient) user);
+                        boolean retourAccueil = menuPatient((Patient) user);
+                        if (retourAccueil) {
+                            start();
+                            return;
+                        }
                     }else{
                         System.out.println("Erreur : vous n'êtes pas un patient !");
                     }
@@ -119,78 +122,56 @@ public class Interface {
     }
 
 
-    private static void menuPatient(Patient patient) {
-    	Scanner scanner = new Scanner(System.in);
-    	
-        //System.out.println("== Menu Patient === \n");
-     	int choix = 0;
-     	
-     	while (choix != 3){
-             System.out.println("\n=== Menu Patient ==="); 
-             System.out.println("Bienvenue, " + patient.getNom() + " " + patient.getPrenom() + "!\n");
-             System.out.println("1. Consulter mon dossier médical");
-             System.out.println("2. Programmer une consultation");
-             System.out.println("3. Exporter votre dossier medical");
-             System.out.println("4. Déconnexion");
-             
-             while (true) {
-                 System.out.print("Votre choix : ");
+    private static boolean menuPatient(Patient patient) {
+        Scanner scanner = new Scanner(System.in);
 
-                 try {
-                     choix = Integer.parseInt(scanner.nextLine());
+        int choix = 0;
 
-                     if (choix >= 1 && choix <= 3) {
-                         break;  // Sortie de la boucle , choix valide
-                     } else {
-                         System.out.println("Choix invalide, veuillez entrer un nombre entre 1 et 3.");
-                     }
-                     
-                 } catch (NumberFormatException e) {
-                     System.out.println("Erreur : veuillez entrer un nombre valide");
-                 }
-             }
-             
-             switch (choix) 
-             {
-             case 1:
-                System.out.println("\n--- Programmation d'une Consultation ---");
-                //Appelle de la méthode programmer consultation de l'ojet patient
-                Consultation nouvelleConsultation = patient.programmer_Consultation(); 
-                
-                if(nouvelleConsultation == null) {
-                    System.out.println("\n Programmation annulée ou impossible.");
+        while (true) {
+            System.out.println("\n=== Menu Patient ==="); 
+            System.out.println("Bienvenue, " + patient.getNom() + " " + patient.getPrenom() + "!\n");
+            System.out.println("1. Consulter mon dossier médical");
+            System.out.println("2. Programmer une consultation");
+            System.out.println("3. Exporter votre dossier medical");
+            System.out.println("4. Déconnexion");
+
+            while (true) {
+                System.out.print("Votre choix : ");
+
+                try {
+                    choix = Integer.parseInt(scanner.nextLine());
+                    if (choix >= 1 && choix <= 4) break;
+                    System.out.println("Choix invalide, veuillez entrer un nombre entre 1 et 4.");
+                } catch (NumberFormatException e) {
+                    System.out.println("Erreur : veuillez entrer un nombre valide");
                 }
-                break;
-             case 2:
-                programmerConsultation(patient); 
-                break;
-             case 3:
-                patient.exporterDossierMedicalTXT();
-                break;
-             case 4:
-                System.out.println("Déconnexion...");
-                break; 
-             default:
-                break; 
-             }
-     	}
-     	
-     	start(); // Retour à l'accueil
-     }
+            }
+
+            switch (choix) {
+                case 1:
+                    patient.afficherDossierMedical();
+                    break;
+
+                case 2:
+                    Consultation nouvelleConsultation = patient.programmer_Consultation();
+                    if(nouvelleConsultation == null) {
+                        System.out.println("\nProgrammation annulée ou impossible.");
+                    }
+                    break;
+
+                case 3:
+                    patient.exporterDossierMedicalTXT();
+                    break;
+
+                case 4:
+                    System.out.println("Déconnexion...");
+                    return true;   
+            }
+        }
+    }
 
     
 
-     private static void programmerConsultation(Patient patient) {
-         
-         System.out.println("\n--- Programmation d'une Consultation ---");
-         //Appelle de la méthode programmer consultation de l'ojet patient
-         Consultation nouvelleConsultation = patient.programmer_Consultation(); 
-         
-         if (nouvelleConsultation == null) {
-             System.out.println("\n💢 Programmation annulée ou impossible.");
-            }
-         
-     }
 
     private static boolean menuPro(Professionnel_de_Sante pro) {
         Scanner scanner = new Scanner(System.in);

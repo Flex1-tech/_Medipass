@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public class Disponibilite {
     
@@ -125,39 +126,35 @@ public class Disponibilite {
         estReservee = false;
     }
 
-    public boolean save(Connection conn, int idPro) {
-        String sql = "INSERT INTO Disponibilites (idPro, jour, heureDebut, heureFin, estReservee) VALUES (?, ?, ?, ?, ?)";
-        
-        try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setInt(1, idPro);
-            pstmt.setString(2, jour.toString());
-            pstmt.setString(3, heureDebut.toString());
-            pstmt.setString(4, heureFin.toString());
-            pstmt.setInt(5, estReservee ? 1 : 0);
+    public boolean save(Connection conn, int idPro) throws SQLException {
+        if (conn == null) conn = DriverManager.getConnection(User.url);
 
-            int affectedRows = pstmt.executeUpdate();
-            if (affectedRows == 0) {
-                System.err.println("Échec de l'insertion : aucune ligne affectée.");
-                return false;
+        if (this.idDispo > 0) { 
+            // Mise à jour
+            String sql = "UPDATE Disponibilites SET estReservee=? WHERE idDispo=?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, estReservee ? 1 : 0);
+                ps.setInt(2, this.idDispo);
+                ps.executeUpdate();
             }
+        } else {
+            // Insertion
+            String sql = "INSERT INTO Disponibilites (idPro, jour, heureDebut, heureFin, estReservee) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, idPro);
+                ps.setString(2, jour.toString());
+                ps.setString(3, heureDebut.toString());
+                ps.setString(4, heureFin.toString());
+                ps.setInt(5, estReservee ? 1 : 0);
+                ps.executeUpdate();
 
-            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    this.idDispo = generatedKeys.getInt(1);
-                } else {
-                    System.err.println("Échec de l'insertion : aucun ID généré.");
-                    return false;
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) this.idDispo = rs.getInt(1);
                 }
             }
-
-            return true;
-
-        } catch (SQLException e) {
-            System.err.println("Erreur SQL lors de l'insertion : " + e.getMessage());
-            e.printStackTrace();
-            return false;
-            }
         }
+        return true;
+    }
 
     public boolean update(Connection conn) {
         String sql = "UPDATE Disponibilites SET jour = ?, heureDebut = ?, heureFin = ?, estReservee = ? WHERE idDispo = ?";
@@ -205,5 +202,21 @@ public class Disponibilite {
             return false;
         }
     }
+
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Disponibilite)) return false;
+        Disponibilite other = (Disponibilite) obj;
+        return this.idDispo == other.idDispo;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idDispo);
+    }
+
+
 
 }

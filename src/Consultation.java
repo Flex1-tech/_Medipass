@@ -355,13 +355,13 @@ public class Consultation {
                 String sqlInsert = "INSERT INTO Consultations(idPatient, idPro, datePrevue, service, diagnostic, poids, idDispo) VALUES ( ?, ?, ?, ?, ?, ?, ?)";
 
                 try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
-                    pstmt.setInt(2, idUser);
-                    pstmt.setInt(3, this.professionnelDeSante.getIdUser());
-                    pstmt.setString(4, this.datePrevue.toString());
-                    pstmt.setString(5, this.service);
-                    pstmt.setString(6, this.diagnostic);
-                    pstmt.setObject(7, this.poids);
-                    pstmt.setObject(8, this.creneau != null ? this.creneau.getIdDispo() : null);
+                    pstmt.setInt(1, idUser);
+                    pstmt.setInt(2, this.professionnelDeSante.getIdUser());
+                    pstmt.setString(3, this.datePrevue.toString());
+                    pstmt.setString(4, this.service);
+                    pstmt.setString(5, this.diagnostic);
+                    pstmt.setObject(6, this.poids);
+                    pstmt.setObject(7, this.creneau != null ? this.creneau.getIdDispo() : null);
                     pstmt.executeUpdate();
 
 

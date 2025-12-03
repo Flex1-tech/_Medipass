@@ -573,5 +573,9 @@ public boolean supprimer_Disponibilite(Connection conn, Disponibilite dispo) thr
         return patients;
     }
 
+    public void set_Disponibilites(ArrayList<Disponibilite> arrayList) {
+        this.disponibilites = arrayList;
+    }
+
 
 }

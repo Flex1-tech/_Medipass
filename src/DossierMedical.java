@@ -51,7 +51,9 @@ public class DossierMedical {
         this.nbConsultations++;
         
         // On ajoute le diagnostic dans les antecedants
-        this.antecedants.add(consultation.getDiagnostic());
+        String diag = consultation.getDiagnostic();
+        if (diag == null || diag.trim().isEmpty()) diag = "";
+        this.antecedants.add(diag);
     }
 
     public void save(Connection conn, int idUser) {
@@ -107,7 +109,11 @@ public class DossierMedical {
                 if (antecedants != null) {
                     for (String antecedant : antecedants) {
                         pstmt.setInt(1, this.idDossier);
-                        pstmt.setString(2, antecedant);
+                        if (antecedant == null || antecedant.trim().isEmpty()) {
+                            pstmt.setString(2, ""); 
+                        } else {
+                            pstmt.setString(2, antecedant);
+                        }
                         pstmt.executeUpdate();
                     }
                 }

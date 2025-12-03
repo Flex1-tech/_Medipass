@@ -302,7 +302,7 @@ public class Administrateur extends User{
 		            	try(PreparedStatement stmtPro=conn.prepareStatement(updateProSql)){
 		            		stmtPro.setString(1, newCategorie);
 		            		stmtPro.setInt(2, userId);
-		            		int rowsPro=stmtPro.executeUpdate();
+		            		stmtPro.executeUpdate();
 		            	}
 	            	}
 	            	System.out.println("\nInformations mises à jour avec succès.");

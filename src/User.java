@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public abstract class User {
     protected static final String url = "jdbc:sqlite:data/Medipass.db";
@@ -178,8 +179,18 @@ public abstract class User {
         }
     }
 
-    private static void chargerDisponibilites(Connection conn, Professionnel_de_Sante pro, int idUser) 
+    protected static void chargerDisponibilites(Connection conn, Professionnel_de_Sante pro, int idUser) 
         throws SQLException {
+        if (conn == null) {
+            conn = DriverManager.getConnection(url);
+        }
+        
+        if (pro.get_Disponibilites() == null) {
+            pro.set_Disponibilites(new ArrayList<>());
+        } else {
+            pro.get_Disponibilites().clear();
+        }
+
 
         String sqlDispo = "SELECT * FROM Disponibilites WHERE idPro = ?";
         try (PreparedStatement psDispo = conn.prepareStatement(sqlDispo)) {
@@ -192,8 +203,21 @@ public abstract class User {
                     boolean estRes = rsDispo.getInt("estReservee") == 1;
 
                     Disponibilite dispo = new Disponibilite(jour, hDebut, hFin);
+                    dispo.setIdDispo(rsDispo.getInt("idDispo"));
                     if (estRes) dispo.reserver();
-                    pro.ajouter_Disponibilite(dispo);
+
+                    // Vérifie doublons
+                    boolean exists = false;
+                    for (Disponibilite d : pro.get_Disponibilites()) {
+                        if (d.equals(dispo)) { 
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        pro.get_Disponibilites().add(dispo);
+                    }
+
                 }
             }
         }
