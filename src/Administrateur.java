@@ -140,7 +140,7 @@ public class Administrateur extends User{
                if(userId!=-1) {
                    if(estProSante) {
                        try (PreparedStatement stmt=conn.prepareStatement(
-                               "INSERT INTO ProfessionnelSante(user_id, titre) VALUES(?, ?)")) {
+                               "INSERT INTO ProfessionnelSante(idPro, titre) VALUES(?, ?)")) {
                            stmt.setInt(1, userId);
                            stmt.setString(2, titre);
                            stmt.executeUpdate();
@@ -149,7 +149,7 @@ public class Administrateur extends User{
                    
                    else if("admin".equals(typeUser)) {
                        try (PreparedStatement stmt=conn.prepareStatement(
-                               "INSERT INTO Administrateurs(user_id) VALUES(?)")) {
+                               "INSERT INTO Administrateurs(idAdmin) VALUES(?)")) {
                            stmt.setInt(1, userId);
                            stmt.executeUpdate();
                        }
@@ -157,7 +157,7 @@ public class Administrateur extends User{
                    
                    else if("patient".equals(typeUser)) {
                        try (PreparedStatement stmt=conn.prepareStatement(
-                               "INSERT INTO Patients(user_id) VALUES(?)")) {
+                               "INSERT INTO Patients(idPatient) VALUES(?)")) {
                            stmt.setInt(1, userId);
                            stmt.executeUpdate();
                        }
@@ -184,6 +184,7 @@ public class Administrateur extends User{
 		String prenomUser=scanner.nextLine().trim();
 		
 		String typeUser=null;
+		String updateSql=null;
 		boolean estProSante=false;
 		
 		while(true) {
@@ -203,13 +204,16 @@ public class Administrateur extends User{
 			
 			switch(choix){
 		    case 1: typeUser="admin";
+		            updateSql="UPDATE ProfessionnelSante SET titre=? WHERE idAdmin=?";
 			        break;
 			        
 		    case 2: typeUser="patient";
+		            updateSql="UPDATE ProfessionnelSante SET titre=? WHERE idPatient=?";
 			        break;
 			        
 		    case 3: typeUser="pro";
 		            estProSante=true;
+		            updateSql="UPDATE ProfessionnelSante SET titre=? WHERE idPro=?";
 		            break;
 		            
 		    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1, 2 ou 3");
@@ -298,8 +302,7 @@ public class Administrateur extends User{
 	            		System.out.print("\nNouvelle catégorie: ");
 		            	String newCategorie=scanner.nextLine().trim();
 		            	
-		            	String updateProSql="UPDATE ProfessionnelSante SET titre=? WHERE user_id=?";
-		            	try(PreparedStatement stmtPro=conn.prepareStatement(updateProSql)){
+		            	try(PreparedStatement stmtPro=conn.prepareStatement(updateSql)){
 		            		stmtPro.setString(1, newCategorie);
 		            		stmtPro.setInt(2, userId);
 		            		int rowsPro=stmtPro.executeUpdate();
@@ -340,6 +343,7 @@ public class Administrateur extends User{
 		String table=null;
 		String role=null;
 		String typeUser=null;
+		String deleteRoleSql=null;
 		
 		while(true) {
 			System.out.println("\n1 pour suppression de compte administrateur\n"
@@ -360,16 +364,19 @@ public class Administrateur extends User{
 			    case 1: table="Administrateurs";
 			            typeUser="admin";
 				        role="administrateur";
+				        deleteRoleSql="DELETE FROM "+table+" WHERE idAdmin=?";
 				        break;
 				        
 			    case 2: table="Patients";
 			            typeUser="patient";
 				        role="patient";
+				        deleteRoleSql="DELETE FROM "+table+" WHERE idPatient=?";
 				        break;
 				        
 			    case 3: table="ProfessionnelSante";
 			            typeUser="pro";
 			            role="professionnel de santé";
+			            deleteRoleSql="DELETE FROM "+table+" WHERE idPro=?";
 			            break;
 			            
 			    default: System.out.println("Choix invalide, veuillez entrer un nombre entre 1 , 2 ou 3");
@@ -402,7 +409,6 @@ public class Administrateur extends User{
 				}
 			}//Vérifier que l'utilisateur existe
 			
-			String deleteRoleSql="DELETE FROM "+table+" WHERE user_id=?";
 			
 			try(PreparedStatement stmtRole=conn.prepareStatement(deleteRoleSql)){
 				stmtRole.setInt(1, userId);
