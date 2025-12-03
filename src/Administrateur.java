@@ -483,6 +483,61 @@ public class Administrateur extends User{
     	
     	
     }
-	
-		
+
+	public void save() {
+		try (Connection conn = DriverManager.getConnection(url)) {
+
+			// Vérifier si l'utilisateur existe déjà par téléphone
+			String checkSql = "SELECT idUser FROM Users WHERE telephone = ?";
+			try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+				checkStmt.setString(1, this.telephone);
+				try (ResultSet rs = checkStmt.executeQuery()) {
+					if (rs.next()) {
+						System.out.println("Cet utilisateur existe déjà !");
+						this.idUser = rs.getInt("idUser");
+						return;
+					}
+				}
+			}
+
+			// Insérer l'utilisateur dans Users
+			String insertSql = "INSERT INTO Users(nom, prenom, telephone, adresse, motDePasse, typeUser) VALUES (?, ?, ?, ?, ?, ?)";
+			try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+				insertStmt.setString(1, this.nom);
+				insertStmt.setString(2, this.prenom);
+				insertStmt.setString(3, this.telephone);
+				insertStmt.setString(4, this.adresse);
+				insertStmt.setString(5, this.motDePasse); // déjà hashé
+				insertStmt.setString(6, "admin");
+
+				int rows = insertStmt.executeUpdate();
+				if (rows == 0) {
+					System.out.println("Erreur lors de l'insertion de l'administrateur.");
+					return;
+				}
+
+				try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						this.idUser = generatedKeys.getInt(1);
+					} else {
+						System.out.println("Impossible de récupérer l'ID généré !");
+						return;
+					}
+				}
+			}
+
+			// Insérer dans Administrateurs
+			String insertAdminSql = "INSERT INTO Administrateurs(idAdmin) VALUES (?)";
+			try (PreparedStatement stmtAdmin = conn.prepareStatement(insertAdminSql)) {
+				stmtAdmin.setInt(1, this.idUser);
+				stmtAdmin.executeUpdate();
+			}
+
+			System.out.println("Administrateur " + this.nom + " " + this.prenom + " sauvegardé avec succès.");
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 }
