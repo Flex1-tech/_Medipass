@@ -130,7 +130,8 @@ public class Interface {
              System.out.println("Bienvenue, " + patient.getNom() + " " + patient.getPrenom() + "!\n");
              System.out.println("1. Consulter mon dossier médical");
              System.out.println("2. Programmer une consultation");
-             System.out.println("3. Déconnexion");
+             System.out.println("3. Exporter votre dossier medical");
+             System.out.println("4. Déconnexion");
              
              while (true) {
                  System.out.print("Votre choix : ");
@@ -152,16 +153,25 @@ public class Interface {
              switch (choix) 
              {
              case 1:
-                 consulterDossier(patient); 
-                 break;
+                System.out.println("\n--- Programmation d'une Consultation ---");
+                //Appelle de la méthode programmer consultation de l'ojet patient
+                Consultation nouvelleConsultation = patient.programmer_Consultation(); 
+                
+                if(nouvelleConsultation == null) {
+                    System.out.println("\n Programmation annulée ou impossible.");
+                }
+                break;
              case 2:
-                 programmerConsultation(patient); 
-                 break;
+                programmerConsultation(patient); 
+                break;
              case 3:
-                 System.out.println("Déconnexion...");
-                 break; 
+                patient.exporterDossierMedicalTXT();
+                break;
+             case 4:
+                System.out.println("Déconnexion...");
+                break; 
              default:
-                 break; 
+                break; 
              }
      	}
      	
@@ -169,61 +179,6 @@ public class Interface {
      }
 
     
-    
-     private static void consulterDossier(Patient patient) {
-         Scanner scanner = new Scanner(System.in); 
-         
-         DossierMedical dossier = patient.getDossierMedical();
-      // Utilisation des getters pour les informations du user (Patient)
-         System.out.println("\n=============================================");
-         System.out.println("    DOSSIER MÉDICAL DE " + patient.getNom().toUpperCase() + " " + patient.getPrenom().toUpperCase()); 
-         System.out.println("    ID Dossier : " + dossier.getIdDossier());
-         System.out.println("=============================================");
-         System.out.println("\n[ INFORMATIONS PERSONNELLES DU PATIENT ]");
-         System.out.println("   Nom du patient : " + patient.getPrenom() + " " + patient.getNom());
-         System.out.println("   Téléphone : " + patient.getTelephone()); 
-         System.out.println("   Adresse : " + patient.getAdresse());     
-         System.out.println("   Dernière Consultation : " + patient.afficher_Date_Dernière_Consultation());
-
-
-         System.out.println("\n[ ANTÉCÉDENTS ET DIAGNOSTICS ]");
-         
-         List<String> antecedents = dossier.getAntecedants(); 
-         
-         if (antecedents.isEmpty()) {
-             System.out.println("   --> Aucun antécédent ou diagnostic enregistré.");
-         } else {
-             int i = 1;
-             System.out.println("   Liste des Antécédents :");
-             for (String ant : antecedents) {
-                 System.out.println("   " + (i++) + ". " + ant); 
-             }
-         }
-         
-         System.out.println("\n[ HISTORIQUE DE CONSULTATIONS (Total: " + dossier.getNbConsultations() + ") ]");
-         
-         List<Consultation> consultations = dossier.getConsultations();
-         
-         if (consultations.isEmpty()) {
-             System.out.println("   --> Aucune consultation enregistrée.");
-         } else {
-             for (Consultation consult : consultations) {
-                 System.out.println("\n----------------- CONSULTATION #" + consult.getIdConsultation() + " -----------------");
-                 // Le .toString() de Consultation nous permet  d'afficher les détails (date, pro, raisons, ........)
-                 System.out.println(consult.toString()); 
-                 System.out.println("-------------------------------------------------------------------");
-             }
-         }
-
-         System.out.println("\n=============================================");
-         System.out.println("    FIN DU DOSSIER MÉDICAL");
-         System.out.println("=============================================");
-         
-         // Pause pour l'expérience utilisateur
-         System.out.print("\nAppuyez sur ENTRÉE pour revenir au Menu Patient...");
-         scanner.nextLine();
-     }
-
 
      private static void programmerConsultation(Patient patient) {
          
@@ -233,9 +188,7 @@ public class Interface {
          
          if (nouvelleConsultation == null) {
              System.out.println("\n💢 Programmation annulée ou impossible.");
-         } else {
-             System.out.println("\n✅ Consultation programmée avec succès !");
-         }
+            }
          
      }
 

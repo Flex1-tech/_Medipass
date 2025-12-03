@@ -228,18 +228,18 @@ public class Patient extends User {
         // On réserve le créneau
         d.reserver();
         d.save(null, pro.idUser);
-        consultation.save(null, this.idUser);
 
 
         // On ajoute dans le dossier médical
         this.getDossierMedical().ajouterConsultation(consultation);
+        this.getDossierMedical().save(null, this.idUser);
 
         this.date_Derniere_Consultation = consultation.getDatePrevue();
 
-        System.out.println("\n Consultation programmée avec succès !");
+        System.out.println("\n Consultation programmée avec succès !");            
         System.out.println(consultation);
-
         return consultation;
+        
     }
 
     public String toString() {
