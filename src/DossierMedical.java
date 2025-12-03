@@ -1,7 +1,9 @@
 import java.util.List;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
@@ -49,10 +51,19 @@ public class DossierMedical {
         this.nbConsultations++;
         
         // On ajoute le diagnostic dans les antecedants
-        this.antecedants.add(consultation.getDiagnostic());
+        String diag = consultation.getDiagnostic();
+        if (diag == null || diag.trim().isEmpty()) diag = "";
+        this.antecedants.add(diag);
     }
 
     public void save(Connection conn, int idUser) {
+        if(conn == null){
+            try {
+                conn = DriverManager.getConnection(User.url);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
         try {
 
             // Vérifier si un dossier existe déjà
@@ -98,7 +109,11 @@ public class DossierMedical {
                 if (antecedants != null) {
                     for (String antecedant : antecedants) {
                         pstmt.setInt(1, this.idDossier);
-                        pstmt.setString(2, antecedant);
+                        if (antecedant == null || antecedant.trim().isEmpty()) {
+                            pstmt.setString(2, ""); 
+                        } else {
+                            pstmt.setString(2, antecedant);
+                        }
                         pstmt.executeUpdate();
                     }
                 }
@@ -114,4 +129,36 @@ public class DossierMedical {
         }
     }
 
+@Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\n===== DOSSIER MÉDICAL N°").append(idDossier).append(" =====\n");
+
+        // ANTÉCÉDENTS
+        sb.append("\n--- ANTÉCÉDENTS ---\n");
+        if (antecedants.isEmpty()) {
+            sb.append("Aucun antécédent enregistré.\n");
+        } else {
+            for (int i = 0; i < antecedants.size(); i++) {
+                sb.append((i + 1)).append(") ").append(antecedants.get(i)).append("\n");
+            }
+        }
+
+        // CONSULTATIONS
+        sb.append("\n--- CONSULTATIONS (").append(nbConsultations).append(") ---\n");
+        if (consultations.isEmpty()) {
+            sb.append("Aucune consultation.\n");
+        } else {
+            for (Consultation c : consultations) {
+                sb.append(c.toString()).append("\n");
+            }
+        }
+
+        sb.append("===============================\n");
+
+        return sb.toString();
+    }
+
 }
+

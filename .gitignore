@@ -4,3 +4,9 @@
 bin/
 *.class
 bin/
+.vscode/.DS_Store
+# Fichiers macOS à ignorer
+.DS_Store
+data/.DS_Store
+
+

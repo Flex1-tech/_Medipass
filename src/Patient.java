@@ -10,6 +10,10 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Patient extends User {
 
@@ -56,16 +60,16 @@ public class Patient extends User {
 
     }
 
-    public LocalDate get_Date_Dernière_Consultation() {
+    public LocalDate get_Date_Derniere_Consultation() {
         return date_Derniere_Consultation;
     }
 
-    public void set_Date_Dernière_Consultation(String date) {
+    public void set_Date_Derniere_Consultation(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         this.date_Derniere_Consultation = LocalDate.parse(date, formatter);
     }
 
-    public String afficher_Date_Dernière_Consultation() {
+    public String afficher_Date_Derniere_Consultation() {
         if (date_Derniere_Consultation == null) {
             return "Aucune consultation enregistrée.";
         }
@@ -80,7 +84,6 @@ public class Patient extends User {
         Scanner scanner = new Scanner(System.in);
         List<Professionnel_de_Sante> pros = Professionnel_de_Sante.getTousLesProfessionnels();
 
-
         if (pros == null || pros.isEmpty()) {
             System.out.println("Aucun professionnel de santé disponible.");
             return null;
@@ -93,19 +96,13 @@ public class Patient extends User {
         }
 
         int choixPro = -1;
-
-        // --- CHOIX PROFESSIONNEL ---
-
         while (true) {
             System.out.print("\nChoisissez un professionnel (index) ou X pour annuler : ");
             String input = scanner.nextLine().trim();
-            if (input.equalsIgnoreCase("X"))
-                return null;
-
+            if (input.equalsIgnoreCase("X")) return null;
             try {
                 choixPro = Integer.parseInt(input);
-                if (choixPro >= 0 && choixPro < pros.size())
-                    break;
+                if (choixPro >= 0 && choixPro < pros.size()) break;
                 System.out.println("Index invalide. Réessayez.");
             } catch (NumberFormatException e) {
                 System.out.println("Entrez un nombre valide.");
@@ -113,94 +110,131 @@ public class Patient extends User {
         }
 
         Professionnel_de_Sante pro = pros.get(choixPro);
-
-        List<Disponibilite> dispo = pro.get_Disponibilites();
         Disponibilite d = null;
 
-        if (dispo.isEmpty()) {
-            System.out.println("Ce professionnel n’a aucune disponibilité.");
-            return null;
-        }
+        try (Connection conn = DriverManager.getConnection(User.url)) {
+            // Début de transaction
+            conn.setAutoCommit(false);
 
-        System.out.println("\n=== DISPONIBILITÉS DE " + pro.getNom() + " ===");
-        for (int i = 0; i < dispo.size(); i++) {
-            System.out.println(i + ") " + dispo.get(i) + (dispo.get(i).getEstReservee() ? " (Réservé)" : ""));
-        }
-        while (true) {
-            System.out.print("\nChoisissez un créneau (index) ou X pour annuler : ");
-            String input = scanner.nextLine().trim();
-            if (input.equalsIgnoreCase("X"))
+            // Charger les disponibilités
+            User.chargerDisponibilites(conn, pro, pro.getIdUser());
+
+            // Filtrer les créneaux libres
+            List<Disponibilite> dispoLibres = pro.get_Disponibilites().stream()
+                    .filter(c -> !c.getEstReservee())
+                    .collect(Collectors.toList());
+
+            if (dispoLibres.isEmpty()) {
+                System.out.println("Ce professionnel n’a aucune disponibilité libre.");
                 return null;
+            }
 
-            try {
-                int choixDispo = Integer.parseInt(input);
-                if (choixDispo >= 0 && choixDispo < dispo.size()) {
-                    if (!dispo.get(choixDispo).getEstReservee()) {
-                        d = dispo.get(choixDispo);
+            System.out.println("\n=== DISPONIBILITÉS LIBRES DE " + pro.getNom() + "pour la semaine ===");
+            for (int i = 0; i < dispoLibres.size(); i++) {
+                System.out.println(i + ") " + dispoLibres.get(i));
+            }
 
+            // Choix du créneau
+            while (true) {
+                System.out.print("\nChoisissez un créneau (index) ou X pour annuler : ");
+                String input = scanner.nextLine().trim();
+                if (input.equalsIgnoreCase("X")) return null;
+                try {
+                    int choixDispo = Integer.parseInt(input);
+                    if (choixDispo >= 0 && choixDispo < dispoLibres.size()) {
+                        d = dispoLibres.get(choixDispo);
                         break;
                     } else {
-                        System.out.println("Ce créneau est déjà réservé. Choisissez-en un autre.");
+                        System.out.println("Index invalide. Réessayez.");
                     }
-                } else {
-                    System.out.println("Index invalide. Réessayez.");
+                } catch (NumberFormatException e) {
+                    System.out.println("Entrez un nombre valide.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Entrez un nombre valide.");
             }
-        }
 
-        // --- SERVICE ---
-        String service;
-        while (true) {
-            System.out.print("\nEntrez le service (Cardiologie, Dermatologie, ...) : ");
-            service = scanner.nextLine().trim();
-            if (service.equalsIgnoreCase("X"))
-                return null;
-            if (!service.isEmpty())
-                break;
-            System.out.println("\nLe service ne peut pas être vide.");
-        }
-
-        // --- DATE ---
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String dateString;
-        while (true) {
-            System.out.print("\nEntrez la date de consultation (format dd/MM/yyyy) ou X pour annuler : ");
-            String entree = scanner.nextLine().trim();
-            if (entree.equalsIgnoreCase("X"))
-                return null;
-
-            try {
-                LocalDate date = LocalDate.parse(entree, formatter);
-                dateString = date.format(formatter);
-                break;
-            } catch (DateTimeParseException e) {
-                System.out.println("Format invalide ! Veuillez réessayer.\n");
+            // --- SERVICE ---
+            String service;
+            while (true) {
+                System.out.print("\nEntrez le service (Cardiologie, Dermatologie, ...) : ");
+                service = scanner.nextLine().trim();
+                if (service.equalsIgnoreCase("X")) return null;
+                if (!service.isEmpty()) break;
+                System.out.println("\nLe service ne peut pas être vide.");
             }
+
+            // --- DATE ---
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            LocalDate dateChoisie;
+            while (true) {
+                System.out.print("\nEntrez la date de consultation (format dd/MM/yyyy) ou X pour annuler : ");
+                String entree = scanner.nextLine().trim();
+                if (entree.equalsIgnoreCase("X")) return null;
+
+                try {
+                    dateChoisie = LocalDate.parse(entree, formatter);
+                    if (dateChoisie.isBefore(LocalDate.now())) {
+                        System.out.println("Impossible de prendre un rendez-vous dans le passé.");
+                        continue;
+                    }
+
+                    // Vérification du jour
+                    Disponibilite.Jour jour = switch(dateChoisie.getDayOfWeek()) {
+                        case MONDAY -> Disponibilite.Jour.LUNDI;
+                        case TUESDAY -> Disponibilite.Jour.MARDI;
+                        case WEDNESDAY -> Disponibilite.Jour.MERCREDI;
+                        case THURSDAY -> Disponibilite.Jour.JEUDI;
+                        case FRIDAY -> Disponibilite.Jour.VENDREDI;
+                        case SATURDAY -> Disponibilite.Jour.SAMEDI;
+                        case SUNDAY -> Disponibilite.Jour.DIMANCHE;
+                    };
+
+                    if (d.getJour() != jour) {
+                        System.out.println("Le créneau choisi ne correspond pas au jour sélectionné.");
+                        continue;
+                    }
+
+                    break;
+                } catch (DateTimeParseException e) {
+                    System.out.println("Format invalide ! Veuillez réessayer.\n");
+                }
+            }
+
+            // --- Création de la consultation ---
+            Consultation consultation = new Consultation(this, pro, service, dateChoisie.format(formatter), d);
+
+            // Réserver le créneau et sauvegarder
+            d.reserver();
+            d.save(conn, pro.getIdUser());
+
+            // Ajouter au dossier médical et sauvegarder
+            this.getDossierMedical().ajouterConsultation(consultation);
+            this.getDossierMedical().save(conn, this.getIdUser());
+
+            // Commit de la transaction
+            conn.commit();
+
+            // Recharger les disponibilités pour mise à jour
+            User.chargerDisponibilites(conn, pro, pro.getIdUser());
+
+            this.date_Derniere_Consultation = consultation.getDatePrevue();
+
+            System.out.println("\nConsultation programmée avec succès !");
+            System.out.println(consultation);
+
+            return consultation;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Erreur lors de la programmation de la consultation.");
+            return null;
         }
-
-        // --- CREATION CONSULTATION ---
-        Consultation consultation = new Consultation(this, pro, service, dateString, d);
-        // On réserve le créneau
-        d.reserver();
-
-        // On ajoute dans le dossier médical
-        this.getDossierMedical().ajouterConsultation(consultation);
-
-        this.date_Derniere_Consultation = consultation.getDatePrevue();
-
-        System.out.println("\n Consultation programmée avec succès !");
-        System.out.println(consultation);
-
-        return consultation;
     }
 
     public String toString() {
         StringBuilder sb = new StringBuilder(128); // capacité initiale
         sb.append("Nom: ").append(nom).append(", \n");
         sb.append("Prénom: ").append(prenom).append(", \n");
-        sb.append("Date de la dernière consultation: ").append(afficher_Date_Dernière_Consultation()).append(", \n");
+        sb.append("Date de la dernière consultation: ").append(afficher_Date_Derniere_Consultation()).append(", \n");
 
         return sb.toString();
     }
@@ -324,5 +358,28 @@ public class Patient extends User {
             try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
         }
     }
+    
+    public void afficherDossierMedical(){
+        System.out.println(this.getDossierMedical());
+    }
+
+    public void exporterDossierMedicalTXT() {
+        // Créer le nom du fichier automatiquement
+        String nomFichier = "Dossier_" + this.getNom() + "_" + this.getPrenom() + ".txt";
+        
+        File fichier = new File(nomFichier);
+
+        try (FileWriter writer = new FileWriter(fichier)) {
+            writer.write("Patient : " + this.getNom() + " " + this.getPrenom() + "\n");
+            writer.write(this.getDossierMedical().toString());
+
+            System.out.println("Dossier médical exporté avec succès !");
+            System.out.println("Chemin complet : " + fichier.getAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+}
+
 
 }

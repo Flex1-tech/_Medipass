@@ -5,9 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public abstract class User {
-    protected static final String url = "jdbc:sqlite:data/medipass.db";
+    protected static final String url = "jdbc:sqlite:data/Medipass.db";
     protected int idUser;
     private static int compteur = 0;
     protected String nom;
@@ -145,33 +146,24 @@ public abstract class User {
                         case "pro":
                             String sqlTitre = "SELECT titre FROM ProfessionnelSante WHERE idPro = ?";
                             String titre = null;
-                                try (PreparedStatement psTitre = conn.prepareStatement(sqlTitre)) {
-                                    psTitre.setInt(1, idUser);
-                                    try (ResultSet rsTitre = psTitre.executeQuery()) {
-                                        if (rsTitre.next()) {
-                                            titre = rsTitre.getString("titre");
-                                        }
-                                    }
-                                }
-                            Professionnel_de_Sante pro = new Professionnel_de_Sante(idUser, nom, prenom, telephone, adresse, titre);
-
-                            // Charger disponibilités
-                            String sqlDispo = "SELECT * FROM Disponibilites WHERE idPro = ?";
-                            try (PreparedStatement psDispo = conn.prepareStatement(sqlDispo)) {
-                                psDispo.setInt(1, idUser);
-                                try (ResultSet rsDispo = psDispo.executeQuery()) {
-                                    while (rsDispo.next()) {
-                                        Disponibilite.Jour jour = Disponibilite.Jour.valueOf(rsDispo.getString("jour"));
-                                        String hDebut = rsDispo.getString("heureDebut");
-                                        String hFin = rsDispo.getString("heureFin");
-                                        boolean estRes = rsDispo.getInt("estReservee") == 1;
-                                        Disponibilite dispo = new Disponibilite(jour, hDebut, hFin);
-                                        if (estRes) dispo.reserver();
-                                        pro.ajouter_Disponibilite(dispo);
+                            try (PreparedStatement psTitre = conn.prepareStatement(sqlTitre)) {
+                                psTitre.setInt(1, idUser);
+                                try (ResultSet rsTitre = psTitre.executeQuery()) {
+                                    if (rsTitre.next()) {
+                                        titre = rsTitre.getString("titre");
                                     }
                                 }
                             }
+                            if ("Gestionnaire de Patient".equalsIgnoreCase(titre)) {
+                                GestionnaireDePatient gestionnaire =new GestionnaireDePatient(idUser,nom, prenom, telephone,adresse);
+                                
+                                chargerDisponibilites(conn, gestionnaire, idUser);
+                                return gestionnaire;
+                            }
 
+                            Professionnel_de_Sante pro = new Professionnel_de_Sante(idUser, nom, prenom, telephone, adresse, titre);
+
+                            chargerDisponibilites(conn, pro, idUser);                            
                             return pro;
 
                         default:
@@ -186,6 +178,51 @@ public abstract class User {
             return null;
         }
     }
+
+    protected static void chargerDisponibilites(Connection conn, Professionnel_de_Sante pro, int idUser) 
+        throws SQLException {
+        if (conn == null) {
+            conn = DriverManager.getConnection(url);
+        }
+        
+        if (pro.get_Disponibilites() == null) {
+            pro.set_Disponibilites(new ArrayList<>());
+        } else {
+            pro.get_Disponibilites().clear();
+        }
+
+
+        String sqlDispo = "SELECT * FROM Disponibilites WHERE idPro = ?";
+        try (PreparedStatement psDispo = conn.prepareStatement(sqlDispo)) {
+            psDispo.setInt(1, idUser);
+            try (ResultSet rsDispo = psDispo.executeQuery()) {
+                while (rsDispo.next()) {
+                    Disponibilite.Jour jour = Disponibilite.Jour.valueOf(rsDispo.getString("jour"));
+                    String hDebut = rsDispo.getString("heureDebut");
+                    String hFin = rsDispo.getString("heureFin");
+                    boolean estRes = rsDispo.getInt("estReservee") == 1;
+
+                    Disponibilite dispo = new Disponibilite(jour, hDebut, hFin);
+                    dispo.setIdDispo(rsDispo.getInt("idDispo"));
+                    if (estRes) dispo.reserver();
+
+                    // Vérifie doublons
+                    boolean exists = false;
+                    for (Disponibilite d : pro.get_Disponibilites()) {
+                        if (d.equals(dispo)) { 
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        pro.get_Disponibilites().add(dispo);
+                    }
+
+                }
+            }
+        }
+    }
+
 
     public User() {
     this.idUser = ++compteur;  // Attribuer un ID unique à chaque utilisateur

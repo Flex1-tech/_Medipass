@@ -258,7 +258,7 @@ public boolean supprimer_Disponibilite(Connection conn, Disponibilite dispo) thr
     }
 
     public void afficherConsultationsPrevues() {
-        System.out.println("=== Consultations prévues ===");
+        System.out.println("=== Consultations prévues ===\n");
 
         List<Consultation> aVenir = this.getConsultationsAVenir();
 
@@ -267,15 +267,37 @@ public boolean supprimer_Disponibilite(Connection conn, Disponibilite dispo) thr
             return;
         }
 
-    for (Consultation c : aVenir) {
-        System.out.println(
-            "Consultation #" + c.getIdConsultation() +
-            " | Patient : " + c.getPatient().getNom() + " " + c.getPatient().getPrenom() +
-            " | Date : " + c.getDatePrevue() +
-            " | Service : " + c.getService()
-        );
-        System.out.println("---------------------------");
+        for (Consultation c : aVenir) {
+            System.out.println(
+                "Consultation #" + c.getIdConsultation() +
+                "\n | Patient : " + c.getPatient().getNom() + " " + c.getPatient().getPrenom() +
+                "\n | Date : " + c.getDatePrevue() +
+                "\n | Service : " + c.getService()
+            );
+            System.out.println("---------------------------\n");
+        }
+
     }
+
+    public void afficherConsultationsEditables(){
+        System.out.println("=== Consultations éditables ===\n");
+
+        List<Consultation> editable = this.getConsultationsEditables();
+
+        if (editable.isEmpty()) {
+            System.out.println("Aucune consultation prévue.");
+            return;
+        }
+
+        for (Consultation c : editable) {
+            System.out.println(
+                "Consultation #" + c.getIdConsultation() +
+                "\n | Patient : " + c.getPatient().getNom() + " " + c.getPatient().getPrenom() +
+                "\n | Date : " + c.getDatePrevue() +
+                "\n | Service : " + c.getService()
+            );
+            System.out.println("---------------------------\n");
+        }
 
     }
 
@@ -357,6 +379,202 @@ public boolean supprimer_Disponibilite(Connection conn, Disponibilite dispo) thr
         }
 
         return consultations;
+    }
+
+    public List<Consultation> getConsultationsEditables() {
+        List<Consultation> consultations = new ArrayList<>();
+
+        // Récupère uniquement les consultations passées OU du jour
+        String sql = "SELECT * FROM Consultations WHERE idPro = ? AND datePrevue <= date('now') ORDER BY datePrevue DESC";
+
+        try (Connection conn = DriverManager.getConnection(url);
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, this.idUser);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+
+                    int idConsult = rs.getInt("idConsultation");
+                    int idPatient = rs.getInt("idPatient");
+                    String service = rs.getString("service");
+                    LocalDate date = LocalDate.parse(rs.getString("datePrevue"));
+                    int idDispo = rs.getInt("idDispo");
+
+                    // Charger le patient
+                    Patient patient = null;
+                    String sqlPat = "SELECT nom, prenom, telephone, adresse FROM Users WHERE idUser = ?";
+                    try (PreparedStatement psPat = conn.prepareStatement(sqlPat)) {
+                        psPat.setInt(1, idPatient);
+                        try (ResultSet rsPat = psPat.executeQuery()) {
+                            if (rsPat.next()) {
+                                patient = new Patient(
+                                    idPatient,
+                                    rsPat.getString("nom"),
+                                    rsPat.getString("prenom"),
+                                    rsPat.getString("telefono"),
+                                    rsPat.getString("adresse")
+                                );
+                            }
+                        }
+                    }
+
+                    // Charger la disponibilité liée
+                    Disponibilite dispo = null;
+                    if (idDispo > 0) {
+                        String sqlDispo = "SELECT * FROM Disponibilites WHERE idDispo = ?";
+                        try (PreparedStatement psDispo = conn.prepareStatement(sqlDispo)) {
+                            psDispo.setInt(1, idDispo);
+                            try (ResultSet rsDispo = psDispo.executeQuery()) {
+                                if (rsDispo.next()) {
+                                    Disponibilite.Jour jour = Disponibilite.Jour.valueOf(rsDispo.getString("jour"));
+                                    String hDebut = rsDispo.getString("heureDebut");
+                                    String hFin = rsDispo.getString("heureFin");
+                                    boolean estRes = rsDispo.getInt("estReservee") == 1;
+
+                                    dispo = new Disponibilite(jour, hDebut, hFin);
+                                    if (estRes) dispo.reserver();
+                                }
+                            }
+                        }
+                    }
+
+                    // Construire l'objet Consultation
+                    consultations.add(new Consultation(
+                        idConsult,
+                        service,
+                        date,
+                        patient,
+                        this,
+                        dispo
+                    ));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return consultations;
+    }
+
+    public List<Patient> getPatientsLies() {
+        List<Patient> patients = new ArrayList<>();
+
+        try (Connection conn = DriverManager.getConnection(url)) {
+
+            // Trouver les patients ayant consulté ce professionnel
+            String sqlPatients = """
+                SELECT U.idUser, U.nom, U.prenom, U.telephone, U.adresse, P.dateDerniereConsultation
+                FROM Patients P
+                JOIN Users U ON P.idPatient = U.idUser
+                WHERE P.idPatient IN (
+                    SELECT idPatient FROM Consultations WHERE idPro = ?
+                )
+            """;
+
+            try (PreparedStatement ps = conn.prepareStatement(sqlPatients)) {
+                ps.setInt(1, this.idUser);
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    while (rs.next()) {
+
+                        int idPatient = rs.getInt("idUser");
+                        String nom = rs.getString("nom");
+                        String prenom = rs.getString("prenom");
+                        String tel = rs.getString("telephone");
+                        String adresse = rs.getString("adresse");
+
+                        LocalDate dateDerniere = null;
+                        String dateStr = rs.getString("dateDerniereConsultation");
+                        if (dateStr != null)
+                            dateDerniere = LocalDate.parse(dateStr);
+
+                        // Création du patient
+                        Patient patient = new Patient(
+                            idPatient, nom, prenom, tel, adresse,
+                            new DossierMedical(), dateDerniere
+                        );
+
+                        DossierMedical dossier = patient.getDossierMedical();
+
+                        // CHARGER les antécédents
+                        String sqlAnte = """
+                            SELECT texte FROM Antecedents
+                            WHERE idDossier = (SELECT idDossier FROM DossierMedical WHERE idPatient = ?)
+                        """;
+
+                        try (PreparedStatement psAnte = conn.prepareStatement(sqlAnte)) {
+                            psAnte.setInt(1, idPatient);
+                            try (ResultSet rsAnte = psAnte.executeQuery()) {
+                                while (rsAnte.next()) {
+                                    dossier.ajouterAntecedant(rsAnte.getString("texte"));
+                                }
+                            }
+                        }
+
+                        // CHARGER les consultations
+                        String sqlCons = "SELECT * FROM Consultations WHERE idPatient = ? AND idPro = ?";
+                        try (PreparedStatement psCons = conn.prepareStatement(sqlCons)) {
+                            psCons.setInt(1, idPatient);
+                            psCons.setInt(2, this.idUser); 
+
+                            try (ResultSet rsCons = psCons.executeQuery()) {
+                                while (rsCons.next()) {
+
+                                    int idCons = rsCons.getInt("idConsultation");
+                                    String service = rsCons.getString("service");
+                                    LocalDate datePrevue = LocalDate.parse(rsCons.getString("datePrevue"));
+                                    int idDispo = rsCons.getInt("idDispo");
+
+                                
+                                    Professionnel_de_Sante pro = this;
+
+                                    // Charger le créneau
+                                    Disponibilite creneau = null;
+                                    if (idDispo != 0) {
+                                        String sqlDispo = "SELECT * FROM Disponibilites WHERE idDispo = ?";
+                                        try (PreparedStatement psDispo = conn.prepareStatement(sqlDispo)) {
+                                            psDispo.setInt(1, idDispo);
+                                            try (ResultSet rsDispo = psDispo.executeQuery()) {
+                                                if (rsDispo.next()) {
+                                                    Disponibilite.Jour jour = Disponibilite.Jour.valueOf(rsDispo.getString("jour"));
+                                                    String hDebut = rsDispo.getString("heureDebut");
+                                                    String hFin = rsDispo.getString("heureFin");
+                                                    boolean estRes = rsDispo.getInt("estReservee") == 1;
+
+                                                    creneau = new Disponibilite(jour, hDebut, hFin);
+                                                    if (estRes) creneau.reserver();
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Ajouter la consultation au dossier
+                                    Consultation cons = new Consultation(
+                                        idCons, service, datePrevue, patient, pro, creneau
+                                    );
+                                    dossier.ajouterConsultation(cons);
+                                }
+                            }
+                        }
+
+                        // Ajouter le patient dans la liste
+                        patients.add(patient);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return patients;
+    }
+
+    public void set_Disponibilites(ArrayList<Disponibilite> arrayList) {
+        this.disponibilites = arrayList;
     }
 
 
